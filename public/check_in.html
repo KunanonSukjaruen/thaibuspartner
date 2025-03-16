@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกข้อมูลพนักงานเข้างาน</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin-top: 30px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #17a2b8;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .barcode-input {
+            font-size: 22px;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        #driverInfo {
+            display: none;
+        }
+        .clock {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #17a2b8;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+        .form-control:focus {
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .history-container {
+            max-height: 500px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+        .history-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .history-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .history-container::-webkit-scrollbar-thumb {
+            background: #17a2b8;
+            border-radius: 10px;
+        }
+        .delete-btn {
+            cursor: pointer;
+            color: #dc3545;
+        }
+        .delete-btn:hover {
+            color: #bd2130;
+        }
+        .plate-info {
+            padding: 10px 15px;
+            background-color: #e9f7fb;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .badge-plate {
+            font-size: 14px;
+            padding: 4px 8px;
+            background-color: #17a2b8;
+            color: white;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        .success-animation {
+            animation: fadeInOut 3s;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .checkin-status {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(40, 167, 69, 0.9);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+            text-align: center;
+        }
+        .checkin-status i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .manual-selection {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .manual-selection h5 {
+            margin-bottom: 15px;
+            color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Check-in success notification -->
+    <div id="checkinStatus" class="checkin-status">
+        <i class="fas fa-check-circle"></i>
+        <div>บันทึกเวลาเข้างานสำเร็จ</div>
+        <div id="checkinDriver" class="mt-2" style="font-size: 18px;"></div>
+        <div id="checkinPlate" class="mt-1" style="font-size: 18px;"></div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3><i class="fas fa-clock me-2"></i>บันทึกข้อมูลพนักงานเข้างาน</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="clock" id="clock">00:00:00</div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="empNoInput" class="form-label">สแกนรหัสพนักงาน</label>
+                            <input type="text" class="form-control barcode-input" id="empNoInput" placeholder="สแกนบาร์โค้ด" autofocus>
+                        </div>
+                        
+                        <div id="driverInfo" class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>รหัสพนักงาน:</strong> <span id="empNoDisplay"></span></p>
+                                        <p><strong>ชื่อ-นามสกุล:</strong> <span id="driverNameDisplay"></span></p>
+                                        <p><strong>บริษัท:</strong> <span id="vendorDisplay"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <!-- Processing indicator -->
+                                        <div id="processingSection">
+                                            <div class="d-flex justify-content-center align-items-center h-100">
+                                                <div class="spinner-border text-info" role="status">
+                                                    <span class="visually-hidden">กำลังประมวลผล...</span>
+                                                </div>
+                                                <span class="ms-2">กำลังตรวจสอบข้อมูล...</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Default plate section (now just for display) -->
+                                        <div id="defaultPlateSection" style="display: none;">
+                                            <div class="plate-info mb-3">
+                                                <strong>ทะเบียนรถที่ใช้เข้างาน:</strong>
+                                                <span id="defaultPlateID" class="badge-plate"></span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Manual selection section (only shown when no pairings exist) -->
+                                        <div id="selectPlateSection" style="display: none;" class="manual-selection">
+                                            <h5><i class="fas fa-exclamation-circle me-2"></i>ไม่พบข้อมูลการจับคู่</h5>
+                                            <p>กรุณาเลือกทะเบียนรถสำหรับการเข้างานครั้งนี้</p>
+                                            <div class="form-group mb-3">
+                                                <select class="form-select" id="plateIDInput">
+                                                    <option value="">-- เลือกทะเบียนรถ --</option>
+                                                </select>
+                                            </div>
+                                            <button id="checkInBtn" class="btn btn-success w-100 mt-3">
+                                                <i class="fas fa-sign-in-alt me-2"></i>บันทึกเวลาเข้างาน
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Alert for messages -->
+                        <div id="alertContainer"></div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="driver_db.html" class="btn btn-outline-primary">
+                        <i class="fas fa-id-card me-2"></i>จัดการข้อมูลพนักงาน
+                    </a>
+                    <a href="bus_db.html" class="btn btn-outline-success">
+                        <i class="fas fa-bus me-2"></i>จัดการข้อมูลรถ
+                    </a>
+                    <a href="bus_driver.html" class="btn btn-outline-secondary">
+                        <i class="fas fa-link me-2"></i>จับคู่พนักงานกับรถ
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history me-2"></i>ประวัติการเข้างานล่าสุด</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="history-container">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>รหัสพนักงาน</th>
+                                            <th>ชื่อพนักงาน</th>
+                                            <th>ทะเบียนรถ</th>
+                                            <th>บริษัท</th>
+                                            <th>เวลาเข้างาน</th>
+                                            <th>จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="checkInsTableBody">
+                                        <!-- Data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Firebase Config -->
+    <script src="firebase.js"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+            updateClock();
+        });
+
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            setTimeout(updateClock, 1000);
+        }
+
+        function initApp() {
+            // References to Firestore collections
+            const driversCollection = firebase.firestore().collection('drivers');
+            const busesCollection = firebase.firestore().collection('buses');
+            const checkInsCollection = firebase.firestore().collection('checkIns');
+            const pairsCollection = firebase.firestore().collection('bus_driver_pairs');
+            
+            // DOM elements
+            const empNoInput = document.getElementById('empNoInput');
+            const driverInfo = document.getElementById('driverInfo');
+            const empNoDisplay = document.getElementById('empNoDisplay');
+            const driverNameDisplay = document.getElementById('driverNameDisplay');
+            const vendorDisplay = document.getElementById('vendorDisplay');
+            const plateIDInput = document.getElementById('plateIDInput');
+            const checkInBtn = document.getElementById('checkInBtn');
+            const checkInsTableBody = document.getElementById('checkInsTableBody');
+            const alertContainer = document.getElementById('alertContainer');
+            const defaultPlateSection = document.getElementById('defaultPlateSection');
+            const selectPlateSection = document.getElementById('selectPlateSection');
+            const defaultPlateID = document.getElementById('defaultPlateID');
+            const processingSection = document.getElementById('processingSection');
+            const checkinStatus = document.getElementById('checkinStatus');
+            const checkinDriver = document.getElementById('checkinDriver');
+            const checkinPlate = document.getElementById('checkinPlate');
+            
+            // Current driver and default plate data
+            let currentDriver = null;
+            let defaultPlate = null;
+            
+            // Load most recent check-ins
+            loadRecentCheckIns();
+            
+            // Event listeners
+            empNoInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    findDriver();
+                }
+            });
+            
+            checkInBtn.addEventListener('click', function() {
+                recordCheckIn(plateIDInput.value);
+            });
+            
+            // Auto focus on the input field
+            empNoInput.focus();
+            
+            // Functions
+            function findDriver() {
+                const empNo = empNoInput.value.trim();
+                
+                if (!empNo) {
+                    showAlert('กรุณาสแกนรหัสพนักงาน', 'warning');
+                    return;
+                }
+                
+                // Show driver info section with loading spinner
+                driverInfo.style.display = 'block';
+                processingSection.style.display = 'block';
+                defaultPlateSection.style.display = 'none';
+                selectPlateSection.style.display = 'none';
+                
+                driversCollection.where('empNo', '==', empNo).get()
+                    .then((querySnapshot) => {
+                        if (querySnapshot.empty) {
+                            showAlert(`ไม่พบข้อมูลพนักงานรหัส ${empNo}`, 'danger');
+                            driverInfo.style.display = 'none';
+                            currentDriver = null;
+                            empNoInput.value = '';
+                            empNoInput.focus();
+                            return;
+                        }
+                        
+                        // Get the first document (there should only be one)
+                        const doc = querySnapshot.docs[0];
+                        const driver = doc.data();
+                        currentDriver = {
+                            id: doc.id,
+                            ...driver
+                        };
+                        
+                        // Display driver info
+                        empNoDisplay.textContent = driver.empNo;
+                        driverNameDisplay.textContent = driver.driverName;
+                        vendorDisplay.textContent = driver.vendor;
+                        
+                        // Check if there's a default pairing or recent pairings for this driver
+                        checkDriverPairings(driver.empNo, driver.vendor);
+                    })
+                    .catch((error) => {
+                        console.error("Error finding driver: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการค้นหาข้อมูล: ' + error.message, 'danger');
+                        processingSection.style.display = 'none';
+                    });
+            }
+            
+            function checkDriverPairings(empNo, vendor) {
+                // Reset default plate
+                defaultPlate = null;
+                
+                // First check for default pair
+                pairsCollection
+                    .where('empNo', '==', empNo)
+                    .where('isDefault', '==', true)
+                    .get()
+                    .then((defaultPairSnapshot) => {
+                        if (!defaultPairSnapshot.empty) {
+                            // Found default pairing - use this and check in automatically
+                            defaultPlate = defaultPairSnapshot.docs[0].data();
+                            defaultPlateID.textContent = defaultPlate.plateID;
+                            defaultPlateSection.style.display = 'block';
+                            processingSection.style.display = 'none';
+                            
+                            // Automatically record check-in with default plate
+                            recordCheckIn(defaultPlate.plateID);
+                            return;
+                        }
+                        
+                        // No default pairing, check for any pairings without sorting
+                        // This is more reliable than using orderBy which requires an index
+                        pairsCollection
+                            .where('empNo', '==', empNo)
+                            .get()
+                            .then((pairsSnapshot) => {
+                                if (!pairsSnapshot.empty) {
+                                    // Found pairings - sort them client-side and use the most recent
+                                    let pairs = pairsSnapshot.docs.map(doc => doc.data());
+                                    
+                                    // If there are multiple pairs, try to sort by createdAt if it exists
+                                    if (pairs.length > 1 && pairs[0].createdAt) {
+                                        pairs.sort((a, b) => {
+                                            // Newer dates first
+                                            return new Date(b.createdAt) - new Date(a.createdAt);
+                                        });
+                                    }
+                                    
+                                    // Use the first pair (most recent if sorted)
+                                    const recentPair = pairs[0];
+                                    defaultPlateID.textContent = recentPair.plateID;
+                                    defaultPlateSection.style.display = 'block';
+                                    processingSection.style.display = 'none';
+                                    
+                                    // Automatically record check-in with pair plate
+                                    recordCheckIn(recentPair.plateID);
+                                    return;
+                                }
+                                
+                                // No pairings found, load buses for manual selection
+                                processingSection.style.display = 'none';
+                                loadBusesForSelection(vendor);
+                            })
+                            .catch((error) => {
+                                console.error("Error checking for pairs: ", error);
+                                processingSection.style.display = 'none';
+                                showAlert('เกิดข้อผิดพลาดในการตรวจสอบการจับคู่: ' + error.message, 'warning');
+                            });
+                    })
+                    .catch((error) => {
+                        console.error("Error checking for default pair: ", error);
+                        processingSection.style.display = 'none';
+                        showAlert('เกิดข้อผิดพลาดในการตรวจสอบการจับคู่: ' + error.message, 'warning');
+                    });
+            }
+            
+            function loadBusesForSelection(vendor) {
+                // Show manual selection section
+                selectPlateSection.style.display = 'block';
+                
+                // Clear existing options except the first one
+                const options = Array.from(plateIDInput.options);
+                const firstOption = options[0];
+                plateIDInput.innerHTML = '';
+                plateIDInput.appendChild(firstOption);
+                
+                // Load all buses for this vendor
+                busesCollection.where('vendor', '==', vendor).get()
+                    .then((busSnapshot) => {
+                        if (busSnapshot.empty) {
+                            showAlert(`ไม่พบข้อมูลรถของบริษัท ${vendor}`, 'warning');
+                            return;
+                        }
+                        
+                        busSnapshot.forEach((doc) => {
+                            const bus = doc.data();
+                            const option = document.createElement('option');
+                            option.value = bus.plateID;
+                            option.textContent = bus.plateID;
+                            plateIDInput.appendChild(option);
+                        });
+                        
+                        // Focus on the plate ID dropdown
+                        plateIDInput.focus();
+                    })
+                    .catch((error) => {
+                        console.error("Error loading buses: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูลรถ: ' + error.message, 'danger');
+                    });
+            }
+            
+            function recordCheckIn(plateID) {
+                if (!currentDriver) {
+                    showAlert('กรุณาสแกนรหัสพนักงาน', 'warning');
+                    return;
+                }
+                
+                if (!plateID) {
+                    showAlert('กรุณาเลือกทะเบียนรถ', 'warning');
+                    return;
+                }
+                
+                const now = new Date();
+                const checkInData = {
+                    empNo: currentDriver.empNo,
+                    driverName: currentDriver.driverName,
+                    vendor: currentDriver.vendor,
+                    plateID: plateID,
+                    timestamp: now.toISOString(),
+                    formattedDate: `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`,
+                    formattedTime: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+                };
+                
+                checkInsCollection.add(checkInData)
+                    .then(() => {
+                        // Check if this pairing exists, if not, create it
+                        createPairingIfNeeded(currentDriver.id, plateID);
+                        
+                        // Update UI
+                        checkinDriver.textContent = `${currentDriver.empNo} - ${currentDriver.driverName}`;
+                        checkinPlate.textContent = `ทะเบียน: ${plateID}`;
+                        
+                        // Show success message
+                        checkinStatus.style.display = 'block';
+                        checkinStatus.classList.add('success-animation');
+                        
+                        // Hide after 2 seconds
+                        setTimeout(() => {
+                            checkinStatus.style.display = 'none';
+                            checkinStatus.classList.remove('success-animation');
+                            
+                            // Reset the form
+                            empNoInput.value = '';
+                            driverInfo.style.display = 'none';
+                            currentDriver = null;
+                            
+                            // Reload recent check-ins
+                            loadRecentCheckIns();
+                            
+                            // Focus on the employee number input
+                            empNoInput.focus();
+                        }, 2000);
+                    })
+                    .catch((error) => {
+                        console.error("Error recording check-in: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+            
+            function createPairingIfNeeded(driverId, plateID) {
+                // First get the bus data
+                busesCollection.where('plateID', '==', plateID).get()
+                    .then((busSnapshot) => {
+                        if (busSnapshot.empty) return;
+                        
+                        const bus = { id: busSnapshot.docs[0].id, ...busSnapshot.docs[0].data() };
+                        
+                        // Check if this pairing already exists
+                        pairsCollection
+                            .where('driverId', '==', driverId)
+                            .where('plateID', '==', plateID)
+                            .get()
+                            .then((pairSnapshot) => {
+                                if (!pairSnapshot.empty) return; // Pairing already exists
+                                
+                                // Create new pairing
+                                const pairData = {
+                                    busId: bus.id,
+                                    driverId: driverId,
+                                    plateID: plateID,
+                                    vendor: currentDriver.vendor,
+                                    empNo: currentDriver.empNo,
+                                    driverName: currentDriver.driverName,
+                                    isDefault: false, // By default, not setting as default
+                                    createdAt: new Date().toISOString()
+                                };
+                                
+                                pairsCollection.add(pairData)
+                                    .catch((error) => {
+                                        console.error("Error creating pair: ", error);
+                                    });
+                            })
+                            .catch((error) => {
+                                console.error("Error checking existing pair: ", error);
+                            });
+                    })
+                    .catch((error) => {
+                        console.error("Error getting bus: ", error);
+                    });
+            }
+            
+            function loadRecentCheckIns() {
+                checkInsCollection.orderBy('timestamp', 'desc').limit(20).get()
+                    .then((querySnapshot) => {
+                        checkInsTableBody.innerHTML = '';
+                        
+                        if (querySnapshot.empty) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = '<td colspan="6" class="text-center">ไม่มีประวัติการเข้างาน</td>';
+                            checkInsTableBody.appendChild(emptyRow);
+                            return;
+                        }
+                        
+                        querySnapshot.forEach((doc) => {
+                            const checkIn = doc.data();
+                            const row = document.createElement('tr');
+                            
+                            const date = new Date(checkIn.timestamp);
+                            const formattedTime = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+                            const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                            
+                            row.innerHTML = `
+                                <td>${checkIn.empNo}</td>
+                                <td>${checkIn.driverName}</td>
+                                <td>${checkIn.plateID}</td>
+                                <td>${checkIn.vendor}</td>
+                                <td>${formattedDate} ${formattedTime}</td>
+                                <td>
+                                    <i class="fas fa-trash delete-btn" data-id="${doc.id}"></i>
+                                </td>
+                            `;
+                            
+                            checkInsTableBody.appendChild(row);
+                            
+                            // Add event listener to delete button
+                            row.querySelector('.delete-btn').addEventListener('click', () => deleteCheckIn(doc.id));
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading check-ins: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการโหลดประวัติ: ' + error.message, 'danger');
+                    });
+            }
+            
+            function deleteCheckIn(id) {
+                if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
+                    checkInsCollection.doc(id).delete()
+                        .then(() => {
+                            showAlert('ลบรายการสำเร็จ', 'success');
+                            loadRecentCheckIns();
+                        })
+                        .catch((error) => {
+                            console.error("Error deleting check-in: ", error);
+                            showAlert('เกิดข้อผิดพลาดในการลบรายการ: ' + error.message, 'danger');
+                        });
+                }
+            }
+            
+            function showAlert(message, type) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                alertContainer.innerHTML = '';
+                alertContainer.appendChild(alert);
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => {
+                        alertContainer.innerHTML = '';
+                    }, 150);
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

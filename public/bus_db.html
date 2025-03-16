@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการข้อมูลรถ</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1000px;
+            margin-top: 30px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #28a745;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+        .form-control:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-bus me-2"></i>ระบบจัดการข้อมูลรถ</h3>
+                <div>
+                    <button id="addBusBtn" class="btn btn-light"><i class="fas fa-plus me-2"></i>เพิ่มรถใหม่</button>
+                    <a href="driver_db.html" class="btn btn-light ms-2"><i class="fas fa-id-card me-2"></i>จัดการข้อมูลพนักงาน</a>
+                    <a href="check_in.html" class="btn btn-light ms-2"><i class="fas fa-clock me-2"></i>บันทึกเวลาเข้างาน</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Form to add new bus -->
+                <div id="busForm" class="mb-4" style="display: none;">
+                    <div class="card">
+                        <div class="card-header bg-light text-dark">
+                            <h5 id="formTitle">เพิ่มข้อมูลรถใหม่</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="addBusForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="plateID" class="form-label">ทะเบียนรถ</label>
+                                        <input type="text" class="form-control" id="plateID" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="vendor" class="form-label">บริษัท</label>
+                                        <input type="text" class="form-control" id="vendor" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="taxExpireDate" class="form-label">วันหมดอายุภาษี</label>
+                                        <input type="date" class="form-control" id="taxExpireDate" required>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="inspectExpireDate" class="form-label">วันหมดอายุตรวจสภาพรถ</label>
+                                        <input type="date" class="form-control" id="inspectExpireDate" required>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="insuranceExpireDate" class="form-label">วันหมดอายุประกัน</label>
+                                        <input type="date" class="form-control" id="insuranceExpireDate" required>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" id="cancelBtn" class="btn btn-secondary me-2">ยกเลิก</button>
+                                    <button type="submit" class="btn btn-success">บันทึกข้อมูล</button>
+                                </div>
+                                <input type="hidden" id="editMode" value="add">
+                                <input type="hidden" id="busId" value="">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search bar -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="searchInput" class="form-control" placeholder="ค้นหารถ...">
+                            <button class="btn btn-success" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i> ค้นหา
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert for messages -->
+                <div id="alertContainer"></div>
+
+                <!-- Buses table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ทะเบียนรถ</th>
+                                <th>บริษัท</th>
+                                <th>วันหมดอายุภาษี</th>
+                                <th>วันหมดอายุตรวจสภาพรถ</th>
+                                <th>วันหมดอายุประกัน</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="busesTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<!-- Firebase Analytics (ถ้าต้องการใช้) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+<!-- Firebase Config - ต้องเรียกหลังจากโหลด SDK แล้ว -->
+<script src="firebase.js"></script>
+    <script>
+        // Initialize Firebase (use your config from firebase.js)
+        document.addEventListener('DOMContentLoaded', function() {
+            // This will ensure the Firebase configuration is loaded from firebase.js
+            setTimeout(initApp, 100);
+        });
+
+        function initApp() {
+            // Reference to Firestore collection
+            const busesCollection = firebase.firestore().collection('buses');
+            
+            // DOM elements
+            const busesTableBody = document.getElementById('busesTableBody');
+            const addBusForm = document.getElementById('addBusForm');
+            const busForm = document.getElementById('busForm');
+            const addBusBtn = document.getElementById('addBusBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const alertContainer = document.getElementById('alertContainer');
+            const formTitle = document.getElementById('formTitle');
+            const editMode = document.getElementById('editMode');
+            const busId = document.getElementById('busId');
+
+            // Load all buses
+            loadBuses();
+
+            // Event listeners
+            addBusBtn.addEventListener('click', showAddBusForm);
+            cancelBtn.addEventListener('click', hideBusForm);
+            addBusForm.addEventListener('submit', handleBusFormSubmit);
+            searchBtn.addEventListener('click', searchBuses);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchBuses();
+                }
+            });
+
+            // Functions
+            function loadBuses() {
+                busesCollection.get()
+                    .then((querySnapshot) => {
+                        busesTableBody.innerHTML = '';
+                        if (querySnapshot.empty) {
+                            showAlert('ไม่พบข้อมูลรถในระบบ', 'warning');
+                        } else {
+                            querySnapshot.forEach((doc) => {
+                                const bus = doc.data();
+                                addBusToTable(doc.id, bus);
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error loading buses: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+
+            function addBusToTable(id, bus) {
+                const row = document.createElement('tr');
+                
+                // Format dates for display
+                const taxExpireDate = formatDate(bus.taxExpireDate);
+                const inspectExpireDate = formatDate(bus.inspectExpireDate);
+                const insuranceExpireDate = formatDate(bus.insuranceExpireDate);
+                
+                // Check for expiring documents (within 30 days)
+                const today = new Date();
+                
+                const taxExpire = new Date(bus.taxExpireDate);
+                const taxDiffDays = Math.ceil((taxExpire - today) / (1000 * 60 * 60 * 24));
+                
+                const inspectExpire = new Date(bus.inspectExpireDate);
+                const inspectDiffDays = Math.ceil((inspectExpire - today) / (1000 * 60 * 60 * 24));
+                
+                const insuranceExpire = new Date(bus.insuranceExpireDate);
+                const insuranceDiffDays = Math.ceil((insuranceExpire - today) / (1000 * 60 * 60 * 24));
+                
+                let taxClass = '';
+                if (taxDiffDays < 0) {
+                    taxClass = 'text-white bg-danger';
+                } else if (taxDiffDays < 30) {
+                    taxClass = 'text-dark bg-warning';
+                }
+                
+                let inspectClass = '';
+                if (inspectDiffDays < 0) {
+                    inspectClass = 'text-white bg-danger';
+                } else if (inspectDiffDays < 30) {
+                    inspectClass = 'text-dark bg-warning';
+                }
+                
+                let insuranceClass = '';
+                if (insuranceDiffDays < 0) {
+                    insuranceClass = 'text-white bg-danger';
+                } else if (insuranceDiffDays < 30) {
+                    insuranceClass = 'text-dark bg-warning';
+                }
+                
+                row.innerHTML = `
+                    <td>${bus.plateID}</td>
+                    <td>${bus.vendor}</td>
+                    <td class="${taxClass}">${taxExpireDate}</td>
+                    <td class="${inspectClass}">${inspectExpireDate}</td>
+                    <td class="${insuranceClass}">${insuranceExpireDate}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success edit-btn" data-id="${id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                busesTableBody.appendChild(row);
+                
+                // Add event listeners to the buttons
+                row.querySelector('.edit-btn').addEventListener('click', () => editBus(id));
+                row.querySelector('.delete-btn').addEventListener('click', () => deleteBus(id));
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return '-';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('th-TH');
+            }
+
+            function showAddBusForm() {
+                formTitle.textContent = 'เพิ่มข้อมูลรถใหม่';
+                editMode.value = 'add';
+                busId.value = '';
+                addBusForm.reset();
+                busForm.style.display = 'block';
+                document.getElementById('plateID').focus();
+            }
+
+            function hideBusForm() {
+                busForm.style.display = 'none';
+                addBusForm.reset();
+            }
+
+            function handleBusFormSubmit(e) {
+                e.preventDefault();
+                
+                const busData = {
+                    plateID: document.getElementById('plateID').value,
+                    vendor: document.getElementById('vendor').value,
+                    taxExpireDate: document.getElementById('taxExpireDate').value,
+                    inspectExpireDate: document.getElementById('inspectExpireDate').value,
+                    insuranceExpireDate: document.getElementById('insuranceExpireDate').value,
+                };
+                
+                if (editMode.value === 'add') {
+                    // Check if plateID already exists
+                    busesCollection.where('plateID', '==', busData.plateID).get()
+                        .then((querySnapshot) => {
+                            if (!querySnapshot.empty) {
+                                showAlert(`ทะเบียนรถ ${busData.plateID} มีอยู่ในระบบแล้ว`, 'danger');
+                                return;
+                            }
+                            
+                            // Add new bus
+                            busesCollection.add(busData)
+                                .then(() => {
+                                    showAlert('เพิ่มข้อมูลรถสำเร็จ', 'success');
+                                    hideBusForm();
+                                    loadBuses();
+                                })
+                                .catch((error) => {
+                                    console.error("Error adding bus: ", error);
+                                    showAlert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล: ' + error.message, 'danger');
+                                });
+                        });
+                } else {
+                    // Update existing bus
+                    const id = busId.value;
+                    busesCollection.doc(id).update(busData)
+                        .then(() => {
+                            showAlert('อัพเดทข้อมูลรถสำเร็จ', 'success');
+                            hideBusForm();
+                            loadBuses();
+                        })
+                        .catch((error) => {
+                            console.error("Error updating bus: ", error);
+                            showAlert('เกิดข้อผิดพลาดในการอัพเดทข้อมูล: ' + error.message, 'danger');
+                        });
+                }
+            }
+
+            function editBus(id) {
+                formTitle.textContent = 'แก้ไขข้อมูลรถ';
+                editMode.value = 'edit';
+                busId.value = id;
+                
+                busesCollection.doc(id).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const bus = doc.data();
+                            document.getElementById('plateID').value = bus.plateID;
+                            document.getElementById('vendor').value = bus.vendor;
+                            document.getElementById('taxExpireDate').value = bus.taxExpireDate;
+                            document.getElementById('inspectExpireDate').value = bus.inspectExpireDate;
+                            document.getElementById('insuranceExpireDate').value = bus.insuranceExpireDate;
+                            
+                            busForm.style.display = 'block';
+                        } else {
+                            showAlert('ไม่พบข้อมูลรถ', 'warning');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error getting bus: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+
+            function deleteBus(id) {
+                if (confirm('คุณต้องการลบข้อมูลรถนี้ใช่หรือไม่?')) {
+                    busesCollection.doc(id).delete()
+                        .then(() => {
+                            showAlert('ลบข้อมูลรถสำเร็จ', 'success');
+                            loadBuses();
+                        })
+                        .catch((error) => {
+                            console.error("Error deleting bus: ", error);
+                            showAlert('เกิดข้อผิดพลาดในการลบข้อมูล: ' + error.message, 'danger');
+                        });
+                }
+            }
+
+            function searchBuses() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                
+                if (!searchTerm) {
+                    loadBuses();
+                    return;
+                }
+                
+                busesTableBody.innerHTML = '';
+                
+                busesCollection.get()
+                    .then((querySnapshot) => {
+                        let found = false;
+                        
+                        querySnapshot.forEach((doc) => {
+                            const bus = doc.data();
+                            if (
+                                bus.plateID.toLowerCase().includes(searchTerm) ||
+                                bus.vendor.toLowerCase().includes(searchTerm)
+                            ) {
+                                addBusToTable(doc.id, bus);
+                                found = true;
+                            }
+                        });
+                        
+                        if (!found) {
+                            showAlert(`ไม่พบข้อมูลรถที่ตรงกับ "${searchTerm}"`, 'warning');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error searching buses: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการค้นหาข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+
+            function showAlert(message, type) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                alertContainer.innerHTML = '';
+                alertContainer.appendChild(alert);
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => {
+                        alertContainer.innerHTML = '';
+                    }, 150);
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

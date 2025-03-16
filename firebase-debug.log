@@ -1,0 +1,426 @@
+[debug] [2025-03-16T07:08:37.200Z] ----------------------------------------------------------------------
+[debug] [2025-03-16T07:08:37.201Z] Command:       /usr/local/bin/node /usr/local/bin/firebase hosting:channel:deploy preview_name
+[debug] [2025-03-16T07:08:37.201Z] CLI Version:   13.34.0
+[debug] [2025-03-16T07:08:37.202Z] Platform:      darwin
+[debug] [2025-03-16T07:08:37.202Z] Node Version:  v18.13.0
+[debug] [2025-03-16T07:08:37.205Z] Time:          Sun Mar 16 2025 14:08:37 GMT+0700 (Indochina Time)
+[debug] [2025-03-16T07:08:37.205Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-16T07:08:37.292Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-16T07:08:37.292Z] > authorizing via signed-in user (katerkfx@gmail.com)
+[debug] [2025-03-16T07:08:37.292Z] [iam] checking project thaibuspartner for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-03-16T07:08:37.293Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:08:37.293Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:08:37.294Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/thaibuspartner:testIamPermissions [none]
+[debug] [2025-03-16T07:08:37.294Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/thaibuspartner:testIamPermissions x-goog-quota-user=projects/thaibuspartner
+[debug] [2025-03-16T07:08:37.294Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/thaibuspartner:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-03-16T07:08:38.568Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/thaibuspartner:testIamPermissions 200
+[debug] [2025-03-16T07:08:38.568Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/thaibuspartner:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-03-16T07:08:38.569Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:08:38.569Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:08:38.570Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:08:39.304Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:08:39.305Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[debug] [2025-03-16T07:08:39.465Z] TypeError: Cannot read properties of undefined (reading 'source')
+    at /usr/local/lib/node_modules/firebase-tools/lib/deploy/index.js:45:94
+    at Array.find (<anonymous>)
+    at isDeployingWebFramework (/usr/local/lib/node_modules/firebase-tools/lib/deploy/index.js:45:78)
+    at deploy (/usr/local/lib/node_modules/firebase-tools/lib/deploy/index.js:68:80)
+    at Command.hostingChannelDeployAction [as actionFn] (/usr/local/lib/node_modules/firebase-tools/lib/commands/hosting-channel-deploy.js:90:51)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2025-03-16T07:10:24.394Z] ----------------------------------------------------------------------
+[debug] [2025-03-16T07:10:24.395Z] Command:       /usr/local/bin/node /usr/local/bin/firebase init hosting
+[debug] [2025-03-16T07:10:24.395Z] CLI Version:   13.34.0
+[debug] [2025-03-16T07:10:24.395Z] Platform:      darwin
+[debug] [2025-03-16T07:10:24.395Z] Node Version:  v18.13.0
+[debug] [2025-03-16T07:10:24.398Z] Time:          Sun Mar 16 2025 14:10:24 GMT+0700 (Indochina Time)
+[debug] [2025-03-16T07:10:24.399Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-16T07:10:24.484Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-16T07:10:24.484Z] > authorizing via signed-in user (katerkfx@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-03-16T07:10:24.486Z] Using project from CLI flag: thaibuspartner
+[debug] [2025-03-16T07:10:24.487Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:10:24.487Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:10:24.488Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:10:24.942Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:10:24.943Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] i  Using project thaibuspartner (thaibuspartner) 
+[info] 
+=== Hosting Setup
+[debug] [2025-03-16T07:10:24.954Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:10:24.954Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:10:24.954Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:10:25.372Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:10:25.372Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] 
+[info] Your public directory is the folder (relative to your project directory) that
+[info] will contain Hosting assets to be uploaded with firebase deploy. If you
+[info] have a build process for your assets, use your build's output directory.
+[info] 
+[info] ✔  Wrote public/404.html 
+[debug] [2025-03-16T07:10:48.477Z] >>> [apiv2][query] GET https://www.gstatic.com/firebasejs/releases.json [none]
+[debug] [2025-03-16T07:10:48.645Z] <<< [apiv2][status] GET https://www.gstatic.com/firebasejs/releases.json 200
+[debug] [2025-03-16T07:10:48.645Z] <<< [apiv2][body] GET https://www.gstatic.com/firebasejs/releases.json {"current":{"version":"11.4.0","browserURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.tgz"},"live":{"version":"11.4","browserURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.tgz"},"components":{"analytics":"https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js","app":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js","app-check":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app-check.js","auth":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js","auth/cordova":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/cordova.js","auth/web-extension":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/web-extension.js","functions":"https://www.gstatic.com/firebasejs/11.4.0/firebase-functions.js","firestore":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js","firestore/lite":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore/lite.js","installations":"https://www.gstatic.com/firebasejs/11.4.0/firebase-installations.js","storage":"https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js","performance":"https://www.gstatic.com/firebasejs/11.4.0/firebase-performance.js","remote-config":"https://www.gstatic.com/firebasejs/11.4.0/firebase-remote-config.js","messaging":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging.js","messaging/sw":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging/sw.js","database":"https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js","vertexai":"https://www.gstatic.com/firebasejs/11.4.0/firebase-vertexai.js","data-connect":"https://www.gstatic.com/firebasejs/11.4.0/firebase-data-connect.js","firestore.memory":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.memory.js"}}
+[info] i  public/index.html is unchanged 
+[info] 
+[info] i  Detected a .git folder at /Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner 
+[info] i  Authorizing with GitHub to upload your service account to a GitHub repository's secrets store. 
+[info] 
+[info] Visit this URL on this device to log in:
+[info] https://github.com/login/oauth/authorize?client_id=89cf50f02ac6aaed3484&state=928172432&redirect_uri=http%3A%2F%2Flocalhost%3A9005&scope=read%3Auser%20repo%20public_repo
+[info] 
+[info] Waiting for authentication...
+[debug] [2025-03-16T07:11:10.447Z] >>> [apiv2][query] POST https://github.com/login/oauth/access_token [none]
+[debug] [2025-03-16T07:11:10.447Z] >>> [apiv2][body] POST https://github.com/login/oauth/access_token [stream]
+[debug] [2025-03-16T07:11:10.897Z] <<< [apiv2][status] POST https://github.com/login/oauth/access_token 200
+[debug] [2025-03-16T07:11:10.898Z] <<< [apiv2][body] POST https://github.com/login/oauth/access_token {"access_token":"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","token_type":"bearer","scope":"read:user,repo"}
+[debug] [2025-03-16T07:11:10.902Z] >>> [apiv2][query] GET https://api.github.com/user [none]
+[debug] [2025-03-16T07:11:11.434Z] <<< [apiv2][status] GET https://api.github.com/user 200
+[debug] [2025-03-16T07:11:11.435Z] <<< [apiv2][body] GET https://api.github.com/user {"login":"KunanonSukjaruen","id":53618173,"node_id":"MDQ6VXNlcjUzNjE4MTcz","avatar_url":"https://avatars.githubusercontent.com/u/53618173?v=4","gravatar_id":"","url":"https://api.github.com/users/KunanonSukjaruen","html_url":"https://github.com/KunanonSukjaruen","followers_url":"https://api.github.com/users/KunanonSukjaruen/followers","following_url":"https://api.github.com/users/KunanonSukjaruen/following{/other_user}","gists_url":"https://api.github.com/users/KunanonSukjaruen/gists{/gist_id}","starred_url":"https://api.github.com/users/KunanonSukjaruen/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/KunanonSukjaruen/subscriptions","organizations_url":"https://api.github.com/users/KunanonSukjaruen/orgs","repos_url":"https://api.github.com/users/KunanonSukjaruen/repos","events_url":"https://api.github.com/users/KunanonSukjaruen/events{/privacy}","received_events_url":"https://api.github.com/users/KunanonSukjaruen/received_events","type":"User","user_view_type":"private","site_admin":false,"name":"HappyWorkPlace","company":null,"blog":"","location":null,"email":null,"hireable":null,"bio":null,"twitter_username":null,"notification_email":null,"public_repos":11,"public_gists":0,"followers":0,"following":0,"created_at":"2019-08-02T15:01:07Z","updated_at":"2025-03-16T04:05:30Z","private_gists":0,"total_private_repos":0,"owned_private_repos":0,"disk_usage":8730,"collaborators":0,"two_factor_authentication":false,"plan":{"name":"free","space":976562499,"collaborators":0,"private_repos":10000}}
+[info] 
+[info] ✔  Success! Logged into GitHub as KunanonSukjaruen 
+[info] 
+[debug] [2025-03-16T07:11:16.817Z] >>> [apiv2][query] GET https://api.github.com/repos//actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:11:17.204Z] <<< [apiv2][status] GET https://api.github.com/repos//actions/secrets/public-key 404
+[debug] [2025-03-16T07:11:17.204Z] <<< [apiv2][body] GET https://api.github.com/repos//actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:11:20.724Z] >>> [apiv2][query] GET https://api.github.com/repos//actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:11:21.130Z] <<< [apiv2][status] GET https://api.github.com/repos//actions/secrets/public-key 404
+[debug] [2025-03-16T07:11:21.130Z] <<< [apiv2][body] GET https://api.github.com/repos//actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:11:33.074Z] >>> [apiv2][query] GET https://api.github.com/repos//actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:11:33.505Z] <<< [apiv2][status] GET https://api.github.com/repos//actions/secrets/public-key 404
+[debug] [2025-03-16T07:11:33.505Z] <<< [apiv2][body] GET https://api.github.com/repos//actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:12:32.228Z] >>> [apiv2][query] GET https://api.github.com/repos//actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:12:32.663Z] <<< [apiv2][status] GET https://api.github.com/repos//actions/secrets/public-key 404
+[debug] [2025-03-16T07:12:32.663Z] <<< [apiv2][body] GET https://api.github.com/repos//actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:13:18.178Z] >>> [apiv2][query] GET https://api.github.com/repos/thaibuspartner/actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:13:18.622Z] <<< [apiv2][status] GET https://api.github.com/repos/thaibuspartner/actions/secrets/public-key 404
+[debug] [2025-03-16T07:13:18.623Z] <<< [apiv2][body] GET https://api.github.com/repos/thaibuspartner/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:13:20.035Z] >>> [apiv2][query] GET https://api.github.com/repos/thaibuspartner/actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:13:20.481Z] <<< [apiv2][status] GET https://api.github.com/repos/thaibuspartner/actions/secrets/public-key 404
+[debug] [2025-03-16T07:13:20.481Z] <<< [apiv2][body] GET https://api.github.com/repos/thaibuspartner/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:14:17.862Z] >>> [apiv2][query] GET https://api.github.com/repos/skip/actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:14:18.273Z] <<< [apiv2][status] GET https://api.github.com/repos/skip/actions/secrets/public-key 404
+[debug] [2025-03-16T07:14:18.274Z] <<< [apiv2][body] GET https://api.github.com/repos/skip/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:14:21.663Z] >>> [apiv2][query] GET https://api.github.com/repos/skip/actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:14:22.064Z] <<< [apiv2][status] GET https://api.github.com/repos/skip/actions/secrets/public-key 404
+[debug] [2025-03-16T07:14:22.065Z] <<< [apiv2][body] GET https://api.github.com/repos/skip/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:14:25.791Z] >>> [apiv2][query] GET https://api.github.com/repos/skip/actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:14:26.230Z] <<< [apiv2][status] GET https://api.github.com/repos/skip/actions/secrets/public-key 404
+[debug] [2025-03-16T07:14:26.230Z] <<< [apiv2][body] GET https://api.github.com/repos/skip/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:15:09.457Z] ----------------------------------------------------------------------
+[debug] [2025-03-16T07:15:09.458Z] Command:       /usr/local/bin/node /usr/local/bin/firebase init hosting
+[debug] [2025-03-16T07:15:09.458Z] CLI Version:   13.34.0
+[debug] [2025-03-16T07:15:09.458Z] Platform:      darwin
+[debug] [2025-03-16T07:15:09.458Z] Node Version:  v18.13.0
+[debug] [2025-03-16T07:15:09.460Z] Time:          Sun Mar 16 2025 14:15:09 GMT+0700 (Indochina Time)
+[debug] [2025-03-16T07:15:09.460Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-16T07:15:09.548Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-16T07:15:09.549Z] > authorizing via signed-in user (katerkfx@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-03-16T07:15:09.550Z] Using project from CLI flag: thaibuspartner
+[debug] [2025-03-16T07:15:09.551Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:09.551Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:09.551Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:15:10.245Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:15:10.245Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] i  Using project thaibuspartner (thaibuspartner) 
+[info] 
+=== Hosting Setup
+[debug] [2025-03-16T07:15:10.257Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:10.257Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:10.257Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:15:10.898Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:15:10.899Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] 
+[info] Your public directory is the folder (relative to your project directory) that
+[info] will contain Hosting assets to be uploaded with firebase deploy. If you
+[info] have a build process for your assets, use your build's output directory.
+[info] 
+[info] i  public/404.html is unchanged 
+[debug] [2025-03-16T07:15:26.465Z] >>> [apiv2][query] GET https://www.gstatic.com/firebasejs/releases.json [none]
+[debug] [2025-03-16T07:15:26.613Z] <<< [apiv2][status] GET https://www.gstatic.com/firebasejs/releases.json 200
+[debug] [2025-03-16T07:15:26.613Z] <<< [apiv2][body] GET https://www.gstatic.com/firebasejs/releases.json {"current":{"version":"11.4.0","browserURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.tgz"},"live":{"version":"11.4","browserURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.tgz"},"components":{"analytics":"https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js","app":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js","app-check":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app-check.js","auth":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js","auth/cordova":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/cordova.js","auth/web-extension":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/web-extension.js","functions":"https://www.gstatic.com/firebasejs/11.4.0/firebase-functions.js","firestore":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js","firestore/lite":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore/lite.js","installations":"https://www.gstatic.com/firebasejs/11.4.0/firebase-installations.js","storage":"https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js","performance":"https://www.gstatic.com/firebasejs/11.4.0/firebase-performance.js","remote-config":"https://www.gstatic.com/firebasejs/11.4.0/firebase-remote-config.js","messaging":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging.js","messaging/sw":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging/sw.js","database":"https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js","vertexai":"https://www.gstatic.com/firebasejs/11.4.0/firebase-vertexai.js","data-connect":"https://www.gstatic.com/firebasejs/11.4.0/firebase-data-connect.js","firestore.memory":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.memory.js"}}
+[info] i  public/index.html is unchanged 
+[info] 
+[info] i  Writing configuration info to firebase.json... 
+[info] i  Writing project information to .firebaserc... 
+[info] i  Writing gitignore file to .gitignore... 
+[debug] [2025-03-16T07:15:26.791Z] Error: EISDIR: illegal operation on a directory, open '/Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner/.gitignore'
+    at Object.openSync (node:fs:600:3)
+    at Object.writeFileSync (node:fs:2221:35)
+    at Object.createFileSync (/usr/local/lib/node_modules/firebase-tools/node_modules/fs-extra/lib/ensure/file.js:63:6)
+    at Config.writeProjectFile (/usr/local/lib/node_modules/firebase-tools/lib/config.js:159:12)
+    at /usr/local/lib/node_modules/firebase-tools/lib/commands/init.js:210:20
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2025-03-16T07:15:56.540Z] ----------------------------------------------------------------------
+[debug] [2025-03-16T07:15:56.541Z] Command:       /usr/local/bin/node /usr/local/bin/firebase init hosting
+[debug] [2025-03-16T07:15:56.541Z] CLI Version:   13.34.0
+[debug] [2025-03-16T07:15:56.541Z] Platform:      darwin
+[debug] [2025-03-16T07:15:56.541Z] Node Version:  v18.13.0
+[debug] [2025-03-16T07:15:56.542Z] Time:          Sun Mar 16 2025 14:15:56 GMT+0700 (Indochina Time)
+[debug] [2025-03-16T07:15:56.542Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-16T07:15:56.629Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-16T07:15:56.629Z] > authorizing via signed-in user (katerkfx@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-03-16T07:15:56.630Z] Using project from CLI flag: thaibuspartner
+[debug] [2025-03-16T07:15:56.631Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:56.631Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:56.631Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:15:57.256Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:15:57.256Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] i  Using project thaibuspartner (thaibuspartner) 
+[info] 
+=== Hosting Setup
+[debug] [2025-03-16T07:15:57.272Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:57.272Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:15:57.272Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:15:57.851Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:15:57.851Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] 
+[info] Your public directory is the folder (relative to your project directory) that
+[info] will contain Hosting assets to be uploaded with firebase deploy. If you
+[info] have a build process for your assets, use your build's output directory.
+[info] 
+[debug] [2025-03-16T07:16:10.937Z] >>> [apiv2][query] GET https://www.gstatic.com/firebasejs/releases.json [none]
+[debug] [2025-03-16T07:16:11.090Z] <<< [apiv2][status] GET https://www.gstatic.com/firebasejs/releases.json 200
+[debug] [2025-03-16T07:16:11.090Z] <<< [apiv2][body] GET https://www.gstatic.com/firebasejs/releases.json {"current":{"version":"11.4.0","browserURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.tgz"},"live":{"version":"11.4","browserURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.tgz"},"components":{"analytics":"https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js","app":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js","app-check":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app-check.js","auth":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js","auth/cordova":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/cordova.js","auth/web-extension":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/web-extension.js","functions":"https://www.gstatic.com/firebasejs/11.4.0/firebase-functions.js","firestore":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js","firestore/lite":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore/lite.js","installations":"https://www.gstatic.com/firebasejs/11.4.0/firebase-installations.js","storage":"https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js","performance":"https://www.gstatic.com/firebasejs/11.4.0/firebase-performance.js","remote-config":"https://www.gstatic.com/firebasejs/11.4.0/firebase-remote-config.js","messaging":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging.js","messaging/sw":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging/sw.js","database":"https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js","vertexai":"https://www.gstatic.com/firebasejs/11.4.0/firebase-vertexai.js","data-connect":"https://www.gstatic.com/firebasejs/11.4.0/firebase-data-connect.js","firestore.memory":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.memory.js"}}
+[info] i  public/index.html is unchanged 
+[info] 
+[info] i  Writing configuration info to firebase.json... 
+[info] i  Writing project information to .firebaserc... 
+[info] i  Writing gitignore file to .gitignore... 
+[debug] [2025-03-16T07:16:11.247Z] Error: EISDIR: illegal operation on a directory, open '/Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner/.gitignore'
+    at Object.openSync (node:fs:600:3)
+    at Object.writeFileSync (node:fs:2221:35)
+    at Object.createFileSync (/usr/local/lib/node_modules/firebase-tools/node_modules/fs-extra/lib/ensure/file.js:63:6)
+    at Config.writeProjectFile (/usr/local/lib/node_modules/firebase-tools/lib/config.js:159:12)
+    at /usr/local/lib/node_modules/firebase-tools/lib/commands/init.js:210:20
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2025-03-16T07:16:15.222Z] ----------------------------------------------------------------------
+[debug] [2025-03-16T07:16:15.223Z] Command:       /usr/local/bin/node /usr/local/bin/firebase init hosting
+[debug] [2025-03-16T07:16:15.224Z] CLI Version:   13.34.0
+[debug] [2025-03-16T07:16:15.224Z] Platform:      darwin
+[debug] [2025-03-16T07:16:15.224Z] Node Version:  v18.13.0
+[debug] [2025-03-16T07:16:15.224Z] Time:          Sun Mar 16 2025 14:16:15 GMT+0700 (Indochina Time)
+[debug] [2025-03-16T07:16:15.225Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-16T07:16:15.309Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-16T07:16:15.309Z] > authorizing via signed-in user (katerkfx@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-03-16T07:16:15.310Z] Using project from CLI flag: thaibuspartner
+[debug] [2025-03-16T07:16:15.311Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:16:15.311Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:16:15.311Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:16:15.939Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:16:15.939Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] i  Using project thaibuspartner (thaibuspartner) 
+[info] 
+=== Hosting Setup
+[debug] [2025-03-16T07:16:15.947Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:16:15.947Z] Checked if tokens are valid: true, expires at: 1742111646106
+[debug] [2025-03-16T07:16:15.947Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner [none]
+[debug] [2025-03-16T07:16:16.297Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner 200
+[debug] [2025-03-16T07:16:16.297Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/thaibuspartner {"projectId":"thaibuspartner","projectNumber":"501829297518","displayName":"thaibuspartner","name":"projects/thaibuspartner","resources":{"hostingSite":"thaibuspartner"},"state":"ACTIVE","etag":"1_255ce592-6255-4abf-be86-7b66809d0089"}
+[info] 
+[info] Your public directory is the folder (relative to your project directory) that
+[info] will contain Hosting assets to be uploaded with firebase deploy. If you
+[info] have a build process for your assets, use your build's output directory.
+[info] 
+[debug] [2025-03-16T07:16:26.978Z] >>> [apiv2][query] GET https://www.gstatic.com/firebasejs/releases.json [none]
+[debug] [2025-03-16T07:16:27.133Z] <<< [apiv2][status] GET https://www.gstatic.com/firebasejs/releases.json 200
+[debug] [2025-03-16T07:16:27.133Z] <<< [apiv2][body] GET https://www.gstatic.com/firebasejs/releases.json {"current":{"version":"11.4.0","browserURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/11.4.0/firebase.tgz"},"live":{"version":"11.4","browserURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.js","packageURL":"https://www.gstatic.com/firebasejs/live/11.4/firebase.tgz"},"components":{"analytics":"https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js","app":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js","app-check":"https://www.gstatic.com/firebasejs/11.4.0/firebase-app-check.js","auth":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js","auth/cordova":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/cordova.js","auth/web-extension":"https://www.gstatic.com/firebasejs/11.4.0/firebase-auth/web-extension.js","functions":"https://www.gstatic.com/firebasejs/11.4.0/firebase-functions.js","firestore":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js","firestore/lite":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore/lite.js","installations":"https://www.gstatic.com/firebasejs/11.4.0/firebase-installations.js","storage":"https://www.gstatic.com/firebasejs/11.4.0/firebase-storage.js","performance":"https://www.gstatic.com/firebasejs/11.4.0/firebase-performance.js","remote-config":"https://www.gstatic.com/firebasejs/11.4.0/firebase-remote-config.js","messaging":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging.js","messaging/sw":"https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging/sw.js","database":"https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js","vertexai":"https://www.gstatic.com/firebasejs/11.4.0/firebase-vertexai.js","data-connect":"https://www.gstatic.com/firebasejs/11.4.0/firebase-data-connect.js","firestore.memory":"https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.memory.js"}}
+[info] i  public/index.html is unchanged 
+[info] 
+[info] i  Detected a .git folder at /Users/katerk/Desktop/TotheMoon/thaibuspartner/thaibuspartner 
+[info] i  Authorizing with GitHub to upload your service account to a GitHub repository's secrets store. 
+[info] 
+[info] Visit this URL on this device to log in:
+[info] https://github.com/login/oauth/authorize?client_id=89cf50f02ac6aaed3484&state=23959232&redirect_uri=http%3A%2F%2Flocalhost%3A9005&scope=read%3Auser%20repo%20public_repo
+[info] 
+[info] Waiting for authentication...
+[debug] [2025-03-16T07:16:31.087Z] >>> [apiv2][query] POST https://github.com/login/oauth/access_token [none]
+[debug] [2025-03-16T07:16:31.087Z] >>> [apiv2][body] POST https://github.com/login/oauth/access_token [stream]
+[debug] [2025-03-16T07:16:31.563Z] <<< [apiv2][status] POST https://github.com/login/oauth/access_token 200
+[debug] [2025-03-16T07:16:31.564Z] <<< [apiv2][body] POST https://github.com/login/oauth/access_token {"access_token":"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","token_type":"bearer","scope":"read:user,repo"}
+[debug] [2025-03-16T07:16:31.569Z] >>> [apiv2][query] GET https://api.github.com/user [none]
+[debug] [2025-03-16T07:16:32.077Z] <<< [apiv2][status] GET https://api.github.com/user 200
+[debug] [2025-03-16T07:16:32.078Z] <<< [apiv2][body] GET https://api.github.com/user {"login":"KunanonSukjaruen","id":53618173,"node_id":"MDQ6VXNlcjUzNjE4MTcz","avatar_url":"https://avatars.githubusercontent.com/u/53618173?v=4","gravatar_id":"","url":"https://api.github.com/users/KunanonSukjaruen","html_url":"https://github.com/KunanonSukjaruen","followers_url":"https://api.github.com/users/KunanonSukjaruen/followers","following_url":"https://api.github.com/users/KunanonSukjaruen/following{/other_user}","gists_url":"https://api.github.com/users/KunanonSukjaruen/gists{/gist_id}","starred_url":"https://api.github.com/users/KunanonSukjaruen/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/KunanonSukjaruen/subscriptions","organizations_url":"https://api.github.com/users/KunanonSukjaruen/orgs","repos_url":"https://api.github.com/users/KunanonSukjaruen/repos","events_url":"https://api.github.com/users/KunanonSukjaruen/events{/privacy}","received_events_url":"https://api.github.com/users/KunanonSukjaruen/received_events","type":"User","user_view_type":"private","site_admin":false,"name":"HappyWorkPlace","company":null,"blog":"","location":null,"email":null,"hireable":null,"bio":null,"twitter_username":null,"notification_email":null,"public_repos":11,"public_gists":0,"followers":0,"following":0,"created_at":"2019-08-02T15:01:07Z","updated_at":"2025-03-16T04:05:30Z","private_gists":0,"total_private_repos":0,"owned_private_repos":0,"disk_usage":8730,"collaborators":0,"two_factor_authentication":false,"plan":{"name":"free","space":976562499,"collaborators":0,"private_repos":10000}}
+[info] 
+[info] ✔  Success! Logged into GitHub as KunanonSukjaruen 
+[info] 
+[debug] [2025-03-16T07:17:13.078Z] >>> [apiv2][query] GET https://api.github.com/repos/KunanonSukjaruen/actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:17:13.522Z] <<< [apiv2][status] GET https://api.github.com/repos/KunanonSukjaruen/actions/secrets/public-key 404
+[debug] [2025-03-16T07:17:13.523Z] <<< [apiv2][body] GET https://api.github.com/repos/KunanonSukjaruen/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2025-03-16T07:17:19.080Z] >>> [apiv2][query] GET https://api.github.com/repos/thaibuspartner/KunanonSukjaruen/actions/secrets/public-key type=owner
+[debug] [2025-03-16T07:17:19.574Z] <<< [apiv2][status] GET https://api.github.com/repos/thaibuspartner/KunanonSukjaruen/actions/secrets/public-key 404
+[debug] [2025-03-16T07:17:19.574Z] <<< [apiv2][body] GET https://api.github.com/repos/thaibuspartner/KunanonSukjaruen/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest/actions/secrets#get-a-repository-public-key","status":"404"}
+[info] 
+[info] 
+[error] ⚠  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการข้อมูลพนักงานขับรถ</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- เพิ่มบรรทัดนี้ก่อนการเรียกใช้ script อื่นๆ ที่เกี่ยวข้องกับ Firebase -->
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1000px;
+            margin-top: 30px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-id-card me-2"></i>ระบบจัดการข้อมูลพนักงานขับรถ</h3>
+                <div>
+                    <button id="addDriverBtn" class="btn btn-light"><i class="fas fa-plus me-2"></i>เพิ่มพนักงานใหม่</button>
+                    <a href="bus_db.html" class="btn btn-light ms-2"><i class="fas fa-bus me-2"></i>จัดการข้อมูลรถ</a>
+                    <a href="check_in.html" class="btn btn-light ms-2"><i class="fas fa-clock me-2"></i>บันทึกเวลาเข้างาน</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Form to add new driver -->
+                <div id="driverForm" class="mb-4" style="display: none;">
+                    <div class="card">
+                        <div class="card-header bg-light text-dark">
+                            <h5 id="formTitle">เพิ่มข้อมูลพนักงานใหม่</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="addDriverForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="empNo" class="form-label">รหัสพนักงาน</label>
+                                        <input type="text" class="form-control" id="empNo" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="driverName" class="form-label">ชื่อ-นามสกุล</label>
+                                        <input type="text" class="form-control" id="driverName" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="vendor" class="form-label">บริษัท</label>
+                                        <input type="text" class="form-control" id="vendor" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="birthDate" class="form-label">วันเกิด</label>
+                                        <input type="date" class="form-control" id="birthDate" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="joinDate" class="form-label">วันที่เริ่มงาน</label>
+                                        <input type="date" class="form-control" id="joinDate" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="licenseExpireDate" class="form-label">วันหมดอายุใบขับขี่</label>
+                                        <input type="date" class="form-control" id="licenseExpireDate" required>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" id="cancelBtn" class="btn btn-secondary me-2">ยกเลิก</button>
+                                    <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
+                                </div>
+                                <input type="hidden" id="editMode" value="add">
+                                <input type="hidden" id="driverId" value="">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search bar -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="searchInput" class="form-control" placeholder="ค้นหาพนักงาน...">
+                            <button class="btn btn-primary" type="button" id="searchBtn">
+                                <i class="fas fa-search"></i> ค้นหา
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert for messages -->
+                <div id="alertContainer"></div>
+
+                <!-- Drivers table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>รหัสพนักงาน</th>
+                                <th>ชื่อ-นามสกุล</th>
+                                <th>บริษัท</th>
+                                <th>วันเกิด</th>
+                                <th>วันที่เริ่มงาน</th>
+                                <th>วันหมดอายุใบขับขี่</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="driversTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<!-- Firebase Analytics (ถ้าต้องการใช้) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+<!-- Firebase Config - ต้องเรียกหลังจากโหลด SDK แล้ว -->
+<script src="firebase.js"></script>
+    <script>
+        // Initialize Firebase (use your config from firebase.js)
+        document.addEventListener('DOMContentLoaded', function() {
+            // This will ensure the Firebase configuration is loaded from firebase.js
+            setTimeout(initApp, 100);
+        });
+
+        function initApp() {
+            // Reference to Firestore collection
+            const driversCollection = firebase.firestore().collection('drivers');
+            
+            // DOM elements
+            const driversTableBody = document.getElementById('driversTableBody');
+            const addDriverForm = document.getElementById('addDriverForm');
+            const driverForm = document.getElementById('driverForm');
+            const addDriverBtn = document.getElementById('addDriverBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const alertContainer = document.getElementById('alertContainer');
+            const formTitle = document.getElementById('formTitle');
+            const editMode = document.getElementById('editMode');
+            const driverId = document.getElementById('driverId');
+
+            // Load all drivers
+            loadDrivers();
+
+            // Event listeners
+            addDriverBtn.addEventListener('click', showAddDriverForm);
+            cancelBtn.addEventListener('click', hideDriverForm);
+            addDriverForm.addEventListener('submit', handleDriverFormSubmit);
+            searchBtn.addEventListener('click', searchDrivers);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchDrivers();
+                }
+            });
+
+            // Functions
+            function loadDrivers() {
+                driversCollection.get()
+                    .then((querySnapshot) => {
+                        driversTableBody.innerHTML = '';
+                        if (querySnapshot.empty) {
+                            showAlert('ไม่พบข้อมูลพนักงานในระบบ', 'warning');
+                        } else {
+                            querySnapshot.forEach((doc) => {
+                                const driver = doc.data();
+                                addDriverToTable(doc.id, driver);
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error loading drivers: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+
+            function addDriverToTable(id, driver) {
+                const row = document.createElement('tr');
+                
+                // Format dates for display
+                const birthDate = formatDate(driver.birthDate);
+                const joinDate = formatDate(driver.joinDate);
+                const licenseExpireDate = formatDate(driver.licenseExpireDate);
+                
+                // Check if license is about to expire (within 30 days)
+                const today = new Date();
+                const expireDate = new Date(driver.licenseExpireDate);
+                const diffTime = expireDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let licenseClass = '';
+                if (diffDays < 0) {
+                    licenseClass = 'text-white bg-danger';
+                } else if (diffDays < 30) {
+                    licenseClass = 'text-dark bg-warning';
+                }
+                
+                row.innerHTML = `
+                    <td>${driver.empNo}</td>
+                    <td>${driver.driverName}</td>
+                    <td>${driver.vendor}</td>
+                    <td>${birthDate}</td>
+                    <td>${joinDate}</td>
+                    <td class="${licenseClass}">${licenseExpireDate}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary edit-btn" data-id="${id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                driversTableBody.appendChild(row);
+                
+                // Add event listeners to the buttons
+                row.querySelector('.edit-btn').addEventListener('click', () => editDriver(id));
+                row.querySelector('.delete-btn').addEventListener('click', () => deleteDriver(id));
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return '-';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('th-TH');
+            }
+
+            function showAddDriverForm() {
+                formTitle.textContent = 'เพิ่มข้อมูลพนักงานใหม่';
+                editMode.value = 'add';
+                driverId.value = '';
+                addDriverForm.reset();
+                driverForm.style.display = 'block';
+                document.getElementById('empNo').focus();
+            }
+
+            function hideDriverForm() {
+                driverForm.style.display = 'none';
+                addDriverForm.reset();
+            }
+
+            function handleDriverFormSubmit(e) {
+                e.preventDefault();
+                
+                const driverData = {
+                    empNo: document.getElementById('empNo').value,
+                    driverName: document.getElementById('driverName').value,
+                    vendor: document.getElementById('vendor').value,
+                    birthDate: document.getElementById('birthDate').value,
+                    joinDate: document.getElementById('joinDate').value,
+                    licenseExpireDate: document.getElementById('licenseExpireDate').value,
+                };
+                
+                if (editMode.value === 'add') {
+                    // Check if empNo already exists
+                    driversCollection.where('empNo', '==', driverData.empNo).get()
+                        .then((querySnapshot) => {
+                            if (!querySnapshot.empty) {
+                                showAlert(`รหัสพนักงาน ${driverData.empNo} มีอยู่ในระบบแล้ว`, 'danger');
+                                return;
+                            }
+                            
+                            // Add new driver
+                            driversCollection.add(driverData)
+                                .then(() => {
+                                    showAlert('เพิ่มข้อมูลพนักงานสำเร็จ', 'success');
+                                    hideDriverForm();
+                                    loadDrivers();
+                                })
+                                .catch((error) => {
+                                    console.error("Error adding driver: ", error);
+                                    showAlert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล: ' + error.message, 'danger');
+                                });
+                        });
+                } else {
+                    // Update existing driver
+                    const id = driverId.value;
+                    driversCollection.doc(id).update(driverData)
+                        .then(() => {
+                            showAlert('อัพเดทข้อมูลพนักงานสำเร็จ', 'success');
+                            hideDriverForm();
+                            loadDrivers();
+                        })
+                        .catch((error) => {
+                            console.error("Error updating driver: ", error);
+                            showAlert('เกิดข้อผิดพลาดในการอัพเดทข้อมูล: ' + error.message, 'danger');
+                        });
+                }
+            }
+
+            function editDriver(id) {
+                formTitle.textContent = 'แก้ไขข้อมูลพนักงาน';
+                editMode.value = 'edit';
+                driverId.value = id;
+                
+                driversCollection.doc(id).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const driver = doc.data();
+                            document.getElementById('empNo').value = driver.empNo;
+                            document.getElementById('driverName').value = driver.driverName;
+                            document.getElementById('vendor').value = driver.vendor;
+                            document.getElementById('birthDate').value = driver.birthDate;
+                            document.getElementById('joinDate').value = driver.joinDate;
+                            document.getElementById('licenseExpireDate').value = driver.licenseExpireDate;
+                            
+                            driverForm.style.display = 'block';
+                        } else {
+                            showAlert('ไม่พบข้อมูลพนักงาน', 'warning');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error getting driver: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+
+            function deleteDriver(id) {
+                if (confirm('คุณต้องการลบข้อมูลพนักงานนี้ใช่หรือไม่?')) {
+                    driversCollection.doc(id).delete()
+                        .then(() => {
+                            showAlert('ลบข้อมูลพนักงานสำเร็จ', 'success');
+                            loadDrivers();
+                        })
+                        .catch((error) => {
+                            console.error("Error deleting driver: ", error);
+                            showAlert('เกิดข้อผิดพลาดในการลบข้อมูล: ' + error.message, 'danger');
+                        });
+                }
+            }
+
+            function searchDrivers() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                
+                if (!searchTerm) {
+                    loadDrivers();
+                    return;
+                }
+                
+                driversTableBody.innerHTML = '';
+                
+                driversCollection.get()
+                    .then((querySnapshot) => {
+                        let found = false;
+                        
+                        querySnapshot.forEach((doc) => {
+                            const driver = doc.data();
+                            if (
+                                driver.empNo.toLowerCase().includes(searchTerm) ||
+                                driver.driverName.toLowerCase().includes(searchTerm) ||
+                                driver.vendor.toLowerCase().includes(searchTerm)
+                            ) {
+                                addDriverToTable(doc.id, driver);
+                                found = true;
+                            }
+                        });
+                        
+                        if (!found) {
+                            showAlert(`ไม่พบข้อมูลพนักงานที่ตรงกับ "${searchTerm}"`, 'warning');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error searching drivers: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการค้นหาข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+
+            function showAlert(message, type) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                alertContainer.innerHTML = '';
+                alertContainer.appendChild(alert);
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => {
+                        alertContainer.innerHTML = '';
+                    }, 150);
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

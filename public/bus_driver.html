@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จับคู่พนักงานกับรถ</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin-top: 30px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #6f42c1;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+        }
+        .btn-primary {
+            background-color: #6f42c1;
+            border-color: #6f42c1;
+        }
+        .btn-primary:hover {
+            background-color: #5a32a3;
+            border-color: #5a32a3;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #6f42c1;
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+        }
+        .alert {
+            margin-top: 20px;
+        }
+        .card-tabs {
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .card-tabs .nav-link {
+            margin-bottom: -1px;
+            border: 1px solid transparent;
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+            color: #6f42c1;
+            font-weight: 500;
+        }
+        .card-tabs .nav-link.active {
+            color: #495057;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
+            font-weight: 600;
+        }
+        .bus-card {
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .bus-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(111, 66, 193, 0.2);
+        }
+        .bus-card.selected {
+            border-color: #6f42c1;
+            background-color: #f8f5ff;
+        }
+        .driver-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .driver-item {
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .driver-item:hover {
+            background-color: #f8f5ff;
+        }
+        .driver-item.paired {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+        .driver-item.selected {
+            background-color: #e2d9f3;
+            border-left: 4px solid #6f42c1;
+        }
+        .badge-vendor {
+            background-color: #17a2b8;
+            color: white;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        .badge-count {
+            background-color: #6f42c1;
+            color: white;
+            font-size: 0.85rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        .paired-table {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-link me-2"></i>จับคู่พนักงานกับรถ</h3>
+                <div>
+                    <a href="driver_db.html" class="btn btn-light">
+                        <i class="fas fa-id-card me-2"></i>จัดการข้อมูลพนักงาน
+                    </a>
+                    <a href="bus_db.html" class="btn btn-light ms-2">
+                        <i class="fas fa-bus me-2"></i>จัดการข้อมูลรถ
+                    </a>
+                    <a href="check_in.html" class="btn btn-light ms-2">
+                        <i class="fas fa-clock me-2"></i>บันทึกเวลาเข้างาน
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Alert for messages -->
+                <div id="alertContainer"></div>
+                
+                <!-- Tabs -->
+                <ul class="nav nav-tabs card-tabs" id="pairingTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pairing-tab" data-bs-toggle="tab" data-bs-target="#pairing-tab-pane" type="button" role="tab" aria-selected="true">
+                            จับคู่แบบง่าย
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pairs-tab" data-bs-toggle="tab" data-bs-target="#pairs-tab-pane" type="button" role="tab" aria-selected="false">
+                            รายการจับคู่ทั้งหมด
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="pairingTabsContent">
+                    <!-- Easy Pairing Tab -->
+                    <div class="tab-pane fade show active" id="pairing-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="card">
+                                    <div class="card-header bg-light text-dark">
+                                        <h5>เลือกรถ <span id="busCount" class="badge badge-count float-end">0</span></h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" id="busSearch" placeholder="ค้นหาทะเบียนรถ...">
+                                        </div>
+                                        
+                                        <div class="d-flex mb-2">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="filterAllBuses">ทั้งหมด</button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="filterPairedBuses">จับคู่แล้ว</button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="filterUnpairedBuses">ยังไม่จับคู่</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="busList" class="row row-cols-1 row-cols-md-2 g-3">
+                                            <!-- Buses will be loaded here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <div class="card">
+                                    <div class="card-header bg-light text-dark">
+                                        <h5>
+                                            เลือกพนักงาน
+                                            <span id="driverCount" class="badge badge-count float-end">0</span>
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" id="driverSearch" placeholder="ค้นหาพนักงาน...">
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="filterAllDrivers">ทั้งหมด</button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="filterVendorDrivers">เฉพาะบริษัทเดียวกัน</button>
+                                            </div>
+                                            
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="setAsDefault">
+                                                <label class="form-check-label" for="setAsDefault">ตั้งเป็นค่าเริ่มต้น</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="selectedBusInfo" class="alert alert-light mb-3" style="display: none;">
+                                            <i class="fas fa-bus me-2"></i><strong>รถที่เลือก:</strong> <span id="selectedBusPlate"></span>
+                                            <span class="badge-vendor ms-2" id="selectedBusVendor"></span>
+                                        </div>
+                                        
+                                        <div id="driverList" class="driver-list list-group">
+                                            <!-- Drivers will be loaded here -->
+                                        </div>
+                                        
+                                        <button id="pairButton" class="btn btn-primary w-100 mt-3 d-none">
+                                            <i class="fas fa-link me-2"></i>จับคู่
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- All Pairs Tab -->
+                    <div class="tab-pane fade" id="pairs-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="pairSearch" placeholder="ค้นหารายการจับคู่...">
+                        </div>
+                        
+                        <div class="paired-table">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>ทะเบียนรถ</th>
+                                        <th>บริษัท</th>
+                                        <th>รหัสพนักงาน</th>
+                                        <th>ชื่อพนักงาน</th>
+                                        <th>ค่าเริ่มต้น</th>
+                                        <th>จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pairsTableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Firebase Analytics (ถ้าต้องการใช้) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+    <!-- Firebase Config -->
+    <script src="firebase.js"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
+            // References to Firestore collections
+            const driversCollection = firebase.firestore().collection('drivers');
+            const busesCollection = firebase.firestore().collection('buses');
+            const pairsCollection = firebase.firestore().collection('bus_driver_pairs');
+            
+            // DOM elements - Tabs
+            const pairingTab = document.getElementById('pairing-tab');
+            const pairsTab = document.getElementById('pairs-tab');
+            
+            // DOM elements - Bus section
+            const busList = document.getElementById('busList');
+            const busSearch = document.getElementById('busSearch');
+            const busCount = document.getElementById('busCount');
+            const filterAllBuses = document.getElementById('filterAllBuses');
+            const filterPairedBuses = document.getElementById('filterPairedBuses');
+            const filterUnpairedBuses = document.getElementById('filterUnpairedBuses');
+            
+            // DOM elements - Driver section
+            const driverList = document.getElementById('driverList');
+            const driverSearch = document.getElementById('driverSearch');
+            const driverCount = document.getElementById('driverCount');
+            const filterAllDrivers = document.getElementById('filterAllDrivers');
+            const filterVendorDrivers = document.getElementById('filterVendorDrivers');
+            const setAsDefault = document.getElementById('setAsDefault');
+            
+            // DOM elements - Selected bus info
+            const selectedBusInfo = document.getElementById('selectedBusInfo');
+            const selectedBusPlate = document.getElementById('selectedBusPlate');
+            const selectedBusVendor = document.getElementById('selectedBusVendor');
+            
+            // DOM elements - Pair button
+            const pairButton = document.getElementById('pairButton');
+            
+            // DOM elements - Pairs table
+            const pairsTableBody = document.getElementById('pairsTableBody');
+            const pairSearch = document.getElementById('pairSearch');
+            
+            // DOM elements - Alert
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Data storage
+            let allBuses = [];
+            let allDrivers = [];
+            let allPairs = [];
+            let selectedBus = null;
+            let selectedDriver = null;
+            let pairedBusIds = new Set();
+            let driverPairMap = new Map(); // Maps driver ID to paired bus IDs
+            
+            // Load data
+            loadData();
+            
+            // Event listeners - Tabs
+            pairsTab.addEventListener('click', function() {
+                loadPairs();
+            });
+            
+            // Event listeners - Bus section
+            busSearch.addEventListener('input', filterBuses);
+            filterAllBuses.addEventListener('click', function() {
+                filterAllBuses.classList.add('active');
+                filterPairedBuses.classList.remove('active');
+                filterUnpairedBuses.classList.remove('active');
+                renderBuses(allBuses);
+            });
+            filterPairedBuses.addEventListener('click', function() {
+                filterAllBuses.classList.remove('active');
+                filterPairedBuses.classList.add('active');
+                filterUnpairedBuses.classList.remove('active');
+                renderBuses(allBuses.filter(bus => pairedBusIds.has(bus.id)));
+            });
+            filterUnpairedBuses.addEventListener('click', function() {
+                filterAllBuses.classList.remove('active');
+                filterPairedBuses.classList.remove('active');
+                filterUnpairedBuses.classList.add('active');
+                renderBuses(allBuses.filter(bus => !pairedBusIds.has(bus.id)));
+            });
+            
+            // Event listeners - Driver section
+            driverSearch.addEventListener('input', filterDrivers);
+            filterAllDrivers.addEventListener('click', function() {
+                filterAllDrivers.classList.add('active');
+                filterVendorDrivers.classList.remove('active');
+                renderDrivers(allDrivers);
+            });
+            filterVendorDrivers.addEventListener('click', function() {
+                filterAllDrivers.classList.remove('active');
+                filterVendorDrivers.classList.add('active');
+                if (selectedBus) {
+                    const vendor = selectedBus.vendor;
+                    renderDrivers(allDrivers.filter(driver => driver.vendor === vendor));
+                } else {
+                    renderDrivers(allDrivers);
+                }
+            });
+            
+            // Event listeners - Pair button
+            pairButton.addEventListener('click', handlePair);
+            
+            // Event listeners - Pair search
+            pairSearch.addEventListener('input', filterPairs);
+            
+            // Functions - Load data
+            function loadData() {
+                // Show loading indicators
+                busCount.textContent = "โหลด...";
+                driverCount.textContent = "โหลด...";
+                
+                // Reset data
+                allBuses = [];
+                allDrivers = [];
+                allPairs = [];
+                pairedBusIds = new Set();
+                driverPairMap = new Map();
+                
+                // Load pairs first to know which buses/drivers are paired
+                pairsCollection.get()
+                    .then((pairsSnapshot) => {
+                        // Process pairs
+                        pairsSnapshot.forEach(doc => {
+                            const pair = { id: doc.id, ...doc.data() };
+                            allPairs.push(pair);
+                            
+                            // Track paired buses
+                            pairedBusIds.add(pair.busId);
+                            
+                            // Track driver pairs
+                            if (!driverPairMap.has(pair.driverId)) {
+                                driverPairMap.set(pair.driverId, new Set());
+                            }
+                            driverPairMap.get(pair.driverId).add(pair.busId);
+                        });
+                        
+                        // Now load buses
+                        return busesCollection.get();
+                    })
+                    .then((busesSnapshot) => {
+                        // Process buses
+                        busesSnapshot.forEach(doc => {
+                            const bus = { id: doc.id, ...doc.data() };
+                            allBuses.push(bus);
+                        });
+                        
+                        // Update bus count and render buses
+                        busCount.textContent = allBuses.length;
+                        renderBuses(allBuses);
+                        
+                        // Now load drivers
+                        return driversCollection.get();
+                    })
+                    .then((driversSnapshot) => {
+                        // Process drivers
+                        driversSnapshot.forEach(doc => {
+                            const driver = { id: doc.id, ...doc.data() };
+                            allDrivers.push(driver);
+                        });
+                        
+                        // Update driver count and render drivers
+                        driverCount.textContent = allDrivers.length;
+                        renderDrivers(allDrivers);
+                    })
+                    .catch((error) => {
+                        console.error("Error loading data:", error);
+                        showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+            
+            // Functions - Render buses
+            function renderBuses(buses) {
+                busList.innerHTML = '';
+                
+                if (buses.length === 0) {
+                    busList.innerHTML = '<div class="col-12 text-center p-4">ไม่พบข้อมูลรถ</div>';
+                    return;
+                }
+                
+                buses.sort((a, b) => a.plateID.localeCompare(b.plateID));
+                
+                buses.forEach(bus => {
+                    const isPaired = pairedBusIds.has(bus.id);
+                    const isSelected = selectedBus && selectedBus.id === bus.id;
+                    
+                    const busCard = document.createElement('div');
+                    busCard.className = 'col';
+                    busCard.innerHTML = `
+                        <div class="card h-100 bus-card ${isSelected ? 'selected' : ''} ${isPaired ? 'border-secondary' : ''}">
+                            <div class="card-body">
+                                <h5 class="card-title">${bus.plateID}</h5>
+                                <p class="card-text">
+                                    <span class="badge-vendor">${bus.vendor}</span>
+                                    ${isPaired ? '<span class="badge bg-secondary ms-2">จับคู่แล้ว</span>' : ''}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    const card = busCard.querySelector('.card');
+                    card.addEventListener('click', () => {
+                        // Deselect previous bus
+                        const selectedCards = busList.querySelectorAll('.bus-card.selected');
+                        selectedCards.forEach(card => card.classList.remove('selected'));
+                        
+                        // Select this bus
+                        card.classList.add('selected');
+                        selectedBus = bus;
+                        
+                        // Update selected bus info
+                        selectedBusPlate.textContent = bus.plateID;
+                        selectedBusVendor.textContent = bus.vendor;
+                        selectedBusInfo.style.display = 'block';
+                        
+                        // If filterVendorDrivers is active, filter drivers
+                        if (filterVendorDrivers.classList.contains('active')) {
+                            renderDrivers(allDrivers.filter(driver => driver.vendor === bus.vendor));
+                        }
+                        
+                        // Update driver selection
+                        updateDriverSelection();
+                        
+                        // Show pair button if both bus and driver are selected
+                        updatePairButton();
+                    });
+                    
+                    busList.appendChild(busCard);
+                });
+            }
+            
+            // Functions - Render drivers
+            function renderDrivers(drivers) {
+                driverList.innerHTML = '';
+                
+                if (drivers.length === 0) {
+                    driverList.innerHTML = '<div class="text-center p-4">ไม่พบข้อมูลพนักงาน</div>';
+                    return;
+                }
+                
+                drivers.sort((a, b) => a.empNo.localeCompare(b.empNo));
+                
+                drivers.forEach(driver => {
+                    const isPaired = driverPairMap.has(driver.id);
+                    const isSelected = selectedDriver && selectedDriver.id === driver.id;
+                    const isPairedWithSelectedBus = selectedBus && driverPairMap.has(driver.id) && 
+                                                  driverPairMap.get(driver.id).has(selectedBus.id);
+                    
+                    const driverItem = document.createElement('div');
+                    driverItem.className = `list-group-item driver-item d-flex justify-content-between align-items-center
+                                          ${isSelected ? 'selected' : ''}
+                                          ${isPairedWithSelectedBus ? 'paired' : ''}`;
+                    driverItem.innerHTML = `
+                        <div>
+                            <div class="fw-bold">${driver.empNo} - ${driver.driverName}</div>
+                            <span class="badge-vendor">${driver.vendor}</span>
+                            ${isPaired ? `<span class="badge bg-secondary ms-2">จับคู่แล้ว ${driverPairMap.get(driver.id).size} คัน</span>` : ''}
+                            ${isPairedWithSelectedBus ? '<span class="badge bg-success ms-2">จับคู่กับรถนี้แล้ว</span>' : ''}
+                        </div>
+                        ${isPairedWithSelectedBus ? '<i class="fas fa-check-circle text-success"></i>' : ''}
+                    `;
+                    
+                    driverItem.addEventListener('click', () => {
+                        // Skip if already paired with this bus
+                        if (isPairedWithSelectedBus) return;
+                        
+                        // Deselect previous driver
+                        const selectedItems = driverList.querySelectorAll('.driver-item.selected');
+                        selectedItems.forEach(item => item.classList.remove('selected'));
+                        
+                        // Select this driver
+                        driverItem.classList.add('selected');
+                        selectedDriver = driver;
+                        
+                        // Show pair button if both bus and driver are selected
+                        updatePairButton();
+                    });
+                    
+                    driverList.appendChild(driverItem);
+                });
+            }
+            
+            // Functions - Update driver selection
+            function updateDriverSelection() {
+                // If no bus is selected, keep current driver selection
+                if (!selectedBus) return;
+                
+                // Clear driver selection if vendor filter is active
+                if (filterVendorDrivers.classList.contains('active')) {
+                    selectedDriver = null;
+                    const selectedItems = driverList.querySelectorAll('.driver-item.selected');
+                    selectedItems.forEach(item => item.classList.remove('selected'));
+                }
+            }
+            
+            // Functions - Update pair button
+            function updatePairButton() {
+                if (selectedBus && selectedDriver) {
+                    // Check if the pair already exists
+                    const alreadyPaired = allPairs.some(pair => 
+                        pair.busId === selectedBus.id && pair.driverId === selectedDriver.id
+                    );
+                    
+                    if (!alreadyPaired) {
+                        pairButton.classList.remove('d-none');
+                    } else {
+                        pairButton.classList.add('d-none');
+                    }
+                } else {
+                    pairButton.classList.add('d-none');
+                }
+            }
+            
+            // Functions - Handle pair
+            function handlePair() {
+                if (!selectedBus || !selectedDriver) {
+                    showAlert('กรุณาเลือกทั้งรถและพนักงาน', 'warning');
+                    return;
+                }
+                
+                // Check if vendor matches
+                if (selectedBus.vendor !== selectedDriver.vendor) {
+                    showAlert('บริษัทของรถและพนักงานไม่ตรงกัน', 'warning');
+                    return;
+                }
+                
+                const isDefault = setAsDefault.checked;
+                
+                // If isDefault is true, update all existing pairs for this bus
+                if (isDefault) {
+                    updateDefaultStatus(selectedBus.id);
+                }
+                
+                // Add new pair
+                const pairData = {
+                    busId: selectedBus.id,
+                    driverId: selectedDriver.id,
+                    plateID: selectedBus.plateID,
+                    vendor: selectedBus.vendor,
+                    empNo: selectedDriver.empNo,
+                    driverName: selectedDriver.driverName,
+                    isDefault: isDefault,
+                    createdAt: new Date().toISOString()
+                };
+                
+                pairsCollection.add(pairData)
+                    .then(() => {
+                        showAlert('จับคู่สำเร็จ', 'success');
+                        
+                        // Reset selection
+                        selectedBus = null;
+                        selectedDriver = null;
+                        selectedBusInfo.style.display = 'none';
+                        pairButton.classList.add('d-none');
+                        setAsDefault.checked = false;
+                        
+                        // Reload data
+                        loadData();
+                    })
+                    .catch((error) => {
+                        console.error("Error adding pair: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการจับคู่: ' + error.message, 'danger');
+                    });
+            }
+            
+            // Functions - Update default status
+            function updateDefaultStatus(busId) {
+                pairsCollection.where('busId', '==', busId)
+                    .where('isDefault', '==', true)
+                    .get()
+                    .then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                            pairsCollection.doc(doc.id).update({
+                                isDefault: false
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error updating default status: ", error);
+                    });
+            }
+            
+            // Functions - Load pairs
+            function loadPairs() {
+                pairsCollection.get()
+                    .then((querySnapshot) => {
+                        pairsTableBody.innerHTML = '';
+                        
+                        if (querySnapshot.empty) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = '<td colspan="6" class="text-center">ไม่มีข้อมูลการจับคู่</td>';
+                            pairsTableBody.appendChild(emptyRow);
+                            return;
+                        }
+                        
+                        const pairs = [];
+                        querySnapshot.forEach((doc) => {
+                            pairs.push({ id: doc.id, ...doc.data() });
+                        });
+                        
+                        // Sort by plate ID
+                        pairs.sort((a, b) => a.plateID.localeCompare(b.plateID));
+                        
+                        pairs.forEach(pair => {
+                            addPairToTable(pair);
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading pairs: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูลจับคู่: ' + error.message, 'danger');
+                    });
+            }
+            
+            // Functions - Add pair to table
+            function addPairToTable(pair) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${pair.plateID}</td>
+                    <td>${pair.vendor}</td>
+                    <td>${pair.empNo}</td>
+                    <td>${pair.driverName}</td>
+                    <td>
+                        <span class="badge bg-${pair.isDefault ? 'success' : 'secondary'}">
+                            ${pair.isDefault ? 'ใช่' : 'ไม่ใช่'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${pair.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        ${!pair.isDefault ? `
+                        <button class="btn btn-sm btn-success ms-1 default-btn" data-id="${pair.id}">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        ` : ''}
+                    </td>
+                `;
+                
+                pairsTableBody.appendChild(row);
+                
+                // Add event listeners to the buttons
+                row.querySelector('.delete-btn').addEventListener('click', () => deletePair(pair.id));
+                
+                const defaultBtn = row.querySelector('.default-btn');
+                if (defaultBtn) {
+                    defaultBtn.addEventListener('click', () => makeDefault(pair.id, pair));
+                }
+            }
+            
+            // Functions - Delete pair
+            function deletePair(id) {
+                if (confirm('คุณต้องการลบข้อมูลการจับคู่นี้ใช่หรือไม่?')) {
+                    pairsCollection.doc(id).delete()
+                        .then(() => {
+                            showAlert('ลบข้อมูลการจับคู่สำเร็จ', 'success');
+                            loadPairs();
+                            loadData(); // Reload all data to update the pairing status
+                        })
+                        .catch((error) => {
+                            console.error("Error deleting pair: ", error);
+                            showAlert('เกิดข้อผิดพลาดในการลบข้อมูล: ' + error.message, 'danger');
+                        });
+                }
+            }
+            
+            // Functions - Make default
+            function makeDefault(id, pair) {
+                // Update all other pairs for this bus
+                updateDefaultStatus(pair.busId);
+                
+                // Make this pair default
+                pairsCollection.doc(id).update({
+                    isDefault: true
+                })
+                .then(() => {
+                    showAlert('ตั้งเป็นค่าเริ่มต้นสำเร็จ', 'success');
+                    loadPairs();
+                })
+                .catch((error) => {
+                    console.error("Error setting default: ", error);
+                    showAlert('เกิดข้อผิดพลาดในการตั้งค่าเริ่มต้น: ' + error.message, 'danger');
+                });
+            }
+            
+            // Functions - Filter buses
+            function filterBuses() {
+                const searchTerm = busSearch.value.toLowerCase();
+                
+                if (!searchTerm) {
+                    if (filterAllBuses.classList.contains('active')) {
+                        renderBuses(allBuses);
+                    } else if (filterPairedBuses.classList.contains('active')) {
+                        renderBuses(allBuses.filter(bus => pairedBusIds.has(bus.id)));
+                    } else if (filterUnpairedBuses.classList.contains('active')) {
+                        renderBuses(allBuses.filter(bus => !pairedBusIds.has(bus.id)));
+                    }
+                    return;
+                }
+                
+                let filteredBuses = allBuses.filter(bus => 
+                    bus.plateID.toLowerCase().includes(searchTerm) || 
+                    bus.vendor.toLowerCase().includes(searchTerm)
+                );
+                
+                if (filterPairedBuses.classList.contains('active')) {
+                    filteredBuses = filteredBuses.filter(bus => pairedBusIds.has(bus.id));
+                } else if (filterUnpairedBuses.classList.contains('active')) {
+                    filteredBuses = filteredBuses.filter(bus => !pairedBusIds.has(bus.id));
+                }
+                
+                renderBuses(filteredBuses);
+            }
+            
+            // Functions - Filter drivers
+            function filterDrivers() {
+                const searchTerm = driverSearch.value.toLowerCase();
+                
+                if (!searchTerm) {
+                    if (filterVendorDrivers.classList.contains('active') && selectedBus) {
+                        const vendor = selectedBus.vendor;
+                        renderDrivers(allDrivers.filter(driver => driver.vendor === vendor));
+                    } else {
+                        renderDrivers(allDrivers);
+                    }
+                    return;
+                }
+                
+                let filteredDrivers = allDrivers.filter(driver => 
+                    driver.empNo.toLowerCase().includes(searchTerm) || 
+                    driver.driverName.toLowerCase().includes(searchTerm) ||
+                    driver.vendor.toLowerCase().includes(searchTerm)
+                );
+                
+                if (filterVendorDrivers.classList.contains('active') && selectedBus) {
+                    const vendor = selectedBus.vendor;
+                    filteredDrivers = filteredDrivers.filter(driver => driver.vendor === vendor);
+                }
+                
+                renderDrivers(filteredDrivers);
+            }
+            
+            // Functions - Filter pairs
+            function filterPairs() {
+                const searchTerm = pairSearch.value.toLowerCase();
+                
+                if (!searchTerm) {
+                    loadPairs();
+                    return;
+                }
+                
+                pairsCollection.get()
+                    .then((querySnapshot) => {
+                        pairsTableBody.innerHTML = '';
+                        
+                        if (querySnapshot.empty) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = '<td colspan="6" class="text-center">ไม่มีข้อมูลการจับคู่</td>';
+                            pairsTableBody.appendChild(emptyRow);
+                            return;
+                        }
+                        
+                        let found = false;
+                        
+                        querySnapshot.forEach((doc) => {
+                            const pair = doc.data();
+                            if (
+                                pair.plateID.toLowerCase().includes(searchTerm) ||
+                                pair.vendor.toLowerCase().includes(searchTerm) ||
+                                pair.empNo.toLowerCase().includes(searchTerm) ||
+                                pair.driverName.toLowerCase().includes(searchTerm)
+                            ) {
+                                addPairToTable({ id: doc.id, ...pair });
+                                found = true;
+                            }
+                        });
+                        
+                        if (!found) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = `<td colspan="6" class="text-center">ไม่พบข้อมูลการจับคู่ที่ตรงกับ "${searchTerm}"</td>`;
+                            pairsTableBody.appendChild(emptyRow);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error searching pairs: ", error);
+                        showAlert('เกิดข้อผิดพลาดในการค้นหาข้อมูล: ' + error.message, 'danger');
+                    });
+            }
+            
+            // Functions - Show alert
+            function showAlert(message, type) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                alertContainer.innerHTML = '';
+                alertContainer.appendChild(alert);
+                
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => {
+                        alertContainer.innerHTML = '';
+                    }, 150);
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
