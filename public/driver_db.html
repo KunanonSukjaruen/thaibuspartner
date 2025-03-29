@@ -8,8 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- เพิ่มบรรทัดนี้ก่อนการเรียกใช้ script อื่นๆ ที่เกี่ยวข้องกับ Firebase -->
-
     <style>
         body {
             font-family: 'Sarabun', sans-serif;
@@ -153,279 +151,600 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <!-- Firebase Firestore -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<!-- Firebase Analytics (ถ้าต้องการใช้) -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
-<!-- Firebase Config - ต้องเรียกหลังจากโหลด SDK แล้ว -->
+<!-- เพิ่มบรรทัดนี้: Firebase Config -->
 <script src="firebase.js"></script>
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // Initialize Firebase (use your config from firebase.js)
-        document.addEventListener('DOMContentLoaded', function() {
-            // This will ensure the Firebase configuration is loaded from firebase.js
-            setTimeout(initApp, 100);
-        });
+// Initialize Firebase (use your config from firebase.js)
+document.addEventListener('DOMContentLoaded', function() {
+    // This will ensure the Firebase configuration is loaded from firebase.js
+    setTimeout(initApp, 100);
+});
 
-        function initApp() {
-            // Reference to Firestore collection
-            const driversCollection = firebase.firestore().collection('drivers');
-            
-            // DOM elements
-            const driversTableBody = document.getElementById('driversTableBody');
-            const addDriverForm = document.getElementById('addDriverForm');
-            const driverForm = document.getElementById('driverForm');
-            const addDriverBtn = document.getElementById('addDriverBtn');
-            const cancelBtn = document.getElementById('cancelBtn');
-            const searchInput = document.getElementById('searchInput');
-            const searchBtn = document.getElementById('searchBtn');
-            const alertContainer = document.getElementById('alertContainer');
-            const formTitle = document.getElementById('formTitle');
-            const editMode = document.getElementById('editMode');
-            const driverId = document.getElementById('driverId');
+function initApp() {
+    // Reference to Firestore collection
+    const driversCollection = firebase.firestore().collection('drivers');
+    
+    // DOM elements
+    const driversTableBody = document.getElementById('driversTableBody');
+    const addDriverForm = document.getElementById('addDriverForm');
+    const driverForm = document.getElementById('driverForm');
+    const addDriverBtn = document.getElementById('addDriverBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const alertContainer = document.getElementById('alertContainer');
+    const formTitle = document.getElementById('formTitle');
+    const editMode = document.getElementById('editMode');
+    const driverId = document.getElementById('driverId');
 
-            // Load all drivers
-            loadDrivers();
+    // ตัวแปรสำหรับการเรียงลำดับ
+    let currentSortColumn = '';
+    let sortDirection = 'asc';
+    let allDriversData = []; // เก็บข้อมูลทั้งหมดสำหรับการเรียง
 
-            // Event listeners
-            addDriverBtn.addEventListener('click', showAddDriverForm);
-            cancelBtn.addEventListener('click', hideDriverForm);
-            addDriverForm.addEventListener('submit', handleDriverFormSubmit);
-            searchBtn.addEventListener('click', searchDrivers);
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    searchDrivers();
+    // Load all drivers
+    loadDrivers();
+
+    // Event listeners
+    addDriverBtn.addEventListener('click', showAddDriverForm);
+    cancelBtn.addEventListener('click', hideDriverForm);
+    addDriverForm.addEventListener('submit', handleDriverFormSubmit);
+    searchBtn.addEventListener('click', searchDrivers);
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchDrivers();
+        }
+    });
+
+    // ตั้งค่า headers ให้สามารถเรียงลำดับได้
+    setupSortableHeaders();
+
+    // Functions
+    function setupSortableHeaders() {
+        const tableHeaders = document.querySelector('.table thead tr');
+        
+        // อัปเดต HTML ของส่วนหัวตาราง
+        tableHeaders.innerHTML = `
+            <th data-sort="empNo">รหัสพนักงาน <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+            <th data-sort="driverName">ชื่อ-นามสกุล <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+            <th data-sort="vendor">บริษัท <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+            <th data-sort="birthDate">วันเกิด <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+            <th data-sort="joinDate">วันที่เริ่มงาน <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+            <th data-sort="licenseExpireDate">วันหมดอายุใบขับขี่ <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+            <th>จัดการ</th>
+        `;
+        
+        // เพิ่มอีเวนต์คลิกสำหรับการจัดเรียง - แก้ไขส่วนนี้เพื่อแก้ปัญหา window.sortDrivers
+        document.querySelectorAll('th[data-sort]').forEach(header => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                const column = header.getAttribute('data-sort');
+                
+                // สลับทิศทางการเรียงถ้าคลิกคอลัมน์เดิม
+                if (column === currentSortColumn) {
+                    const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    sortDrivers(column, newDirection);
+                } else {
+                    // เรียงจากน้อยไปมากเมื่อคลิกคอลัมน์ใหม่
+                    sortDrivers(column, 'asc');
                 }
             });
+        });
+    }
 
-            // Functions
-            function loadDrivers() {
-                driversCollection.get()
-                    .then((querySnapshot) => {
-                        driversTableBody.innerHTML = '';
-                        if (querySnapshot.empty) {
-                            showAlert('ไม่พบข้อมูลพนักงานในระบบ', 'warning');
-                        } else {
-                            querySnapshot.forEach((doc) => {
-                                const driver = doc.data();
-                                addDriverToTable(doc.id, driver);
-                            });
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error loading drivers: ", error);
-                        showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'danger');
-                    });
-            }
-
-            function addDriverToTable(id, driver) {
-                const row = document.createElement('tr');
+    function loadDrivers() {
+        driversCollection.get()
+            .then((querySnapshot) => {
+                driversTableBody.innerHTML = '';
+                allDriversData = []; // รีเซ็ตข้อมูลก่อนโหลดใหม่
                 
-                // Format dates for display
-                const birthDate = formatDate(driver.birthDate);
-                const joinDate = formatDate(driver.joinDate);
-                const licenseExpireDate = formatDate(driver.licenseExpireDate);
-                
-                // Check if license is about to expire (within 30 days)
-                const today = new Date();
-                const expireDate = new Date(driver.licenseExpireDate);
-                const diffTime = expireDate - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                let licenseClass = '';
-                if (diffDays < 0) {
-                    licenseClass = 'text-white bg-danger';
-                } else if (diffDays < 30) {
-                    licenseClass = 'text-dark bg-warning';
-                }
-                
-                row.innerHTML = `
-                    <td>${driver.empNo}</td>
-                    <td>${driver.driverName}</td>
-                    <td>${driver.vendor}</td>
-                    <td>${birthDate}</td>
-                    <td>${joinDate}</td>
-                    <td class="${licenseClass}">${licenseExpireDate}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary edit-btn" data-id="${id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                
-                driversTableBody.appendChild(row);
-                
-                // Add event listeners to the buttons
-                row.querySelector('.edit-btn').addEventListener('click', () => editDriver(id));
-                row.querySelector('.delete-btn').addEventListener('click', () => deleteDriver(id));
-            }
-
-            function formatDate(dateString) {
-                if (!dateString) return '-';
-                const date = new Date(dateString);
-                return date.toLocaleDateString('th-TH');
-            }
-
-            function showAddDriverForm() {
-                formTitle.textContent = 'เพิ่มข้อมูลพนักงานใหม่';
-                editMode.value = 'add';
-                driverId.value = '';
-                addDriverForm.reset();
-                driverForm.style.display = 'block';
-                document.getElementById('empNo').focus();
-            }
-
-            function hideDriverForm() {
-                driverForm.style.display = 'none';
-                addDriverForm.reset();
-            }
-
-            function handleDriverFormSubmit(e) {
-                e.preventDefault();
-                
-                const driverData = {
-                    empNo: document.getElementById('empNo').value,
-                    driverName: document.getElementById('driverName').value,
-                    vendor: document.getElementById('vendor').value,
-                    birthDate: document.getElementById('birthDate').value,
-                    joinDate: document.getElementById('joinDate').value,
-                    licenseExpireDate: document.getElementById('licenseExpireDate').value,
-                };
-                
-                if (editMode.value === 'add') {
-                    // Check if empNo already exists
-                    driversCollection.where('empNo', '==', driverData.empNo).get()
-                        .then((querySnapshot) => {
-                            if (!querySnapshot.empty) {
-                                showAlert(`รหัสพนักงาน ${driverData.empNo} มีอยู่ในระบบแล้ว`, 'danger');
-                                return;
-                            }
-                            
-                            // Add new driver
-                            driversCollection.add(driverData)
-                                .then(() => {
-                                    showAlert('เพิ่มข้อมูลพนักงานสำเร็จ', 'success');
-                                    hideDriverForm();
-                                    loadDrivers();
-                                })
-                                .catch((error) => {
-                                    console.error("Error adding driver: ", error);
-                                    showAlert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล: ' + error.message, 'danger');
-                                });
-                        });
+                if (querySnapshot.empty) {
+                    showAlert('ไม่พบข้อมูลพนักงานในระบบ', 'warning');
                 } else {
-                    // Update existing driver
-                    const id = driverId.value;
-                    driversCollection.doc(id).update(driverData)
+                    querySnapshot.forEach((doc) => {
+                        const driver = doc.data();
+                        // เก็บข้อมูลพร้อม ID ไว้ในอาร์เรย์
+                        allDriversData.push({
+                            id: doc.id,
+                            ...driver
+                        });
+                    });
+                    
+                    // แสดงข้อมูลตามการจัดเรียงปัจจุบัน (ถ้ามี)
+                    if (currentSortColumn) {
+                        sortDrivers(currentSortColumn, sortDirection);
+                    } else {
+                        // ถ้ายังไม่มีการจัดเรียง ให้เรียงตามรหัสพนักงาน
+                        sortDrivers('empNo', 'asc');
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error("Error loading drivers: ", error);
+                showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'danger');
+            });
+    }
+
+    // ฟังก์ชันสำหรับการเรียงลำดับข้อมูล
+    function sortDrivers(column, direction) {
+        currentSortColumn = column;
+        sortDirection = direction;
+        
+        const sortedDrivers = [...allDriversData].sort((a, b) => {
+            let valueA, valueB;
+            
+            // ดึงค่าตามคอลัมน์ที่ต้องการเรียง
+            switch (column) {
+                case 'empNo':
+                case 'driverName':
+                case 'vendor':
+                    valueA = (a[column] || '').toLowerCase();
+                    valueB = (b[column] || '').toLowerCase();
+                    
+                    // เรียงตัวอักษร
+                    if (direction === 'asc') {
+                        return valueA.localeCompare(valueB);
+                    } else {
+                        return valueB.localeCompare(valueA);
+                    }
+                    
+                case 'birthDate':
+                case 'joinDate':
+                case 'licenseExpireDate':
+                    // แปลงวันที่เป็น timestamp สำหรับการเปรียบเทียบ
+                    valueA = a[column] ? new Date(a[column]).getTime() : 0;
+                    valueB = b[column] ? new Date(b[column]).getTime() : 0;
+                    
+                    // เรียงตัวเลข (timestamp)
+                    if (direction === 'asc') {
+                        return valueA - valueB;
+                    } else {
+                        return valueB - valueA;
+                    }
+                    
+                default:
+                    return 0;
+            }
+        });
+        
+        // อัปเดตการแสดงผลตาราง
+        renderDriversTable(sortedDrivers);
+        
+        // อัปเดตไอคอนการเรียงลำดับ
+        updateSortIcons(column, direction);
+    }
+
+    // ฟังก์ชันแสดงผลตารางหลังการเรียงลำดับ
+    function renderDriversTable(drivers) {
+        driversTableBody.innerHTML = '';
+        
+        if (drivers.length === 0) {
+            showAlert('ไม่พบข้อมูลพนักงานในระบบ', 'warning');
+            return;
+        }
+        
+        drivers.forEach(driver => {
+            addDriverToTable(driver.id, driver);
+        });
+    }
+
+    // ฟังก์ชันสำหรับอัปเดตไอคอนการเรียงลำดับ
+    function updateSortIcons(column, direction) {
+        // ลบไอคอนการเรียงลำดับทั้งหมด
+        document.querySelectorAll('th .sort-icon').forEach(icon => {
+            icon.innerHTML = '<i class="fas fa-sort text-secondary"></i>';
+        });
+        
+        // แสดงไอคอนตามทิศทางการเรียงลำดับ
+        const currentHeader = document.querySelector(`th[data-sort="${column}"] .sort-icon`);
+        if (currentHeader) {
+            if (direction === 'asc') {
+                currentHeader.innerHTML = '<i class="fas fa-sort-up"></i>';
+            } else {
+                currentHeader.innerHTML = '<i class="fas fa-sort-down"></i>';
+            }
+        }
+    }
+
+    // 1. แก้ไขฟังก์ชัน addDriverToTable เพื่อเพิ่ม id ให้กับแถวและแสดงข้อมูลให้ถูกต้อง
+    function addDriverToTable(id, driver) {
+        const row = document.createElement('tr');
+        row.id = `driver-row-${id}`;
+        
+        // Format dates for display
+        const birthDate = formatDate(driver.birthDate);
+        const joinDate = formatDate(driver.joinDate);
+        const licenseExpireDate = formatDate(driver.licenseExpireDate);
+        
+        row.innerHTML = `
+            <td>${driver.empNo}</td>
+            <td>${driver.driverName}</td>
+            <td>${driver.vendor}</td>
+            <td>${birthDate || '-'}</td>
+            <td>${joinDate || '-'}</td>
+            <td>${licenseExpireDate || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-primary edit-btn" data-id="${id}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        driversTableBody.appendChild(row);
+        
+        // Add event listeners to the buttons
+        row.querySelector('.edit-btn').addEventListener('click', () => editDriver(id));
+        row.querySelector('.delete-btn').addEventListener('click', () => deleteDriver(id));
+    }
+
+    // 2. แก้ไขฟังก์ชัน editDriver เพื่อใช้การแก้ไขแบบ inline
+    function editDriver(id) {
+        driversCollection.doc(id).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const driver = doc.data();
+                    showInlineEdit(id, driver);
+                } else {
+                    showAlert('ไม่พบข้อมูลพนักงาน', 'warning');
+                }
+            })
+            .catch((error) => {
+                console.error("Error getting driver: ", error);
+                showAlert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message, 'danger');
+            });
+    }
+
+    // 3. เพิ่มฟังก์ชันใหม่สำหรับแสดงฟอร์มแก้ไขแบบ inline
+    function showInlineEdit(id, driver) {
+        // หาแถวปัจจุบัน
+        const currentRow = document.getElementById(`driver-row-${id}`);
+        
+        // แปลงวันที่เป็นรูปแบบ yyyy-MM-dd สำหรับ input type="date"
+        const birthDate = driver.birthDate ? driver.birthDate : '';
+        const joinDate = driver.joinDate ? driver.joinDate : '';
+        const licenseExpireDate = driver.licenseExpireDate ? driver.licenseExpireDate : '';
+        
+        // สร้างแถวใหม่สำหรับฟอร์มแก้ไข
+        const editRow = document.createElement('tr');
+        editRow.id = `edit-row-${id}`;
+        editRow.className = 'table-warning';
+        
+        // สร้างฟอร์มแก้ไข
+        editRow.innerHTML = `
+            <td>
+                <input type="text" class="form-control form-control-sm" id="edit-empNo-${id}" value="${driver.empNo}" required>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" id="edit-driverName-${id}" value="${driver.driverName}" required>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" id="edit-vendor-${id}" value="${driver.vendor}" required>
+            </td>
+            <td>
+                <input type="date" class="form-control form-control-sm" id="edit-birthDate-${id}" value="${birthDate}">
+            </td>
+            <td>
+                <input type="date" class="form-control form-control-sm" id="edit-joinDate-${id}" value="${joinDate}">
+            </td>
+            <td>
+                <input type="date" class="form-control form-control-sm" id="edit-licenseExpireDate-${id}" value="${licenseExpireDate}">
+            </td>
+            <td>
+                <button class="btn btn-sm btn-success save-btn" data-id="${id}">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary cancel-btn" data-id="${id}">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        `;
+        
+        // แทรกแถวแก้ไขแทนที่แถวปัจจุบัน
+        currentRow.replaceWith(editRow);
+        
+        // เพิ่มอีเวนต์สำหรับปุ่มบันทึกและยกเลิก
+        editRow.querySelector('.save-btn').addEventListener('click', () => saveInlineEdit(id, driver));
+        editRow.querySelector('.cancel-btn').addEventListener('click', () => cancelInlineEdit(id, driver));
+    }
+
+    // 4. เพิ่มฟังก์ชันสำหรับบันทึกการแก้ไข
+    function saveInlineEdit(id, originalDriver) {
+        // ดึงค่าจากฟอร์ม
+        const empNo = document.getElementById(`edit-empNo-${id}`).value;
+        const driverName = document.getElementById(`edit-driverName-${id}`).value;
+        const vendor = document.getElementById(`edit-vendor-${id}`).value;
+        const birthDate = document.getElementById(`edit-birthDate-${id}`).value;
+        const joinDate = document.getElementById(`edit-joinDate-${id}`).value;
+        const licenseExpireDate = document.getElementById(`edit-licenseExpireDate-${id}`).value;
+        
+        // ตรวจสอบการกรอกข้อมูลที่จำเป็น
+        if (!empNo || !driverName || !vendor) {
+            showAlert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน', 'warning');
+            return;
+        }
+        
+        // ตรวจสอบว่ารหัสพนักงานมีการเปลี่ยนแปลงหรือไม่
+        if (empNo !== originalDriver.empNo) {
+            // ตรวจสอบว่ารหัสพนักงานใหม่มีอยู่ในระบบแล้วหรือไม่
+            driversCollection.where('empNo', '==', empNo).get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        showAlert(`รหัสพนักงาน ${empNo} มีอยู่ในระบบแล้ว`, 'danger');
+                        return;
+                    }
+                    
+                    // อัปเดตข้อมูล
+                    updateDriverData();
+                })
+                .catch((error) => {
+                    console.error("Error checking empNo: ", error);
+                    showAlert('เกิดข้อผิดพลาดในการตรวจสอบรหัสพนักงาน: ' + error.message, 'danger');
+                });
+        } else {
+            // อัปเดตข้อมูลโดยไม่ต้องตรวจสอบรหัสพนักงาน
+            updateDriverData();
+        }
+        
+        // ฟังก์ชันสำหรับอัปเดตข้อมูล
+        function updateDriverData() {
+            const driverData = {
+                empNo: empNo,
+                driverName: driverName,
+                vendor: vendor,
+                birthDate: birthDate,
+                joinDate: joinDate,
+                licenseExpireDate: licenseExpireDate,
+                updatedAt: new Date().toISOString()
+            };
+            
+            driversCollection.doc(id).update(driverData)
+                .then(() => {
+                    showAlert('อัพเดทข้อมูลพนักงานสำเร็จ', 'success');
+                    
+                    // อัปเดตข้อมูลในตัวแปร allDriversData
+                    const index = allDriversData.findIndex(d => d.id === id);
+                    if (index !== -1) {
+                        allDriversData[index] = { id, ...driverData };
+                    }
+                    
+                    // อัปเดตการแสดงผลในตาราง
+                    const editRow = document.getElementById(`edit-row-${id}`);
+                    const normalRow = createDriverRow(id, driverData);
+                    editRow.replaceWith(normalRow);
+                })
+                .catch((error) => {
+                    console.error("Error updating driver: ", error);
+                    showAlert('เกิดข้อผิดพลาดในการอัพเดทข้อมูล: ' + error.message, 'danger');
+                });
+        }
+    }
+
+    // 5. เพิ่มฟังก์ชันสำหรับยกเลิกการแก้ไข
+    function cancelInlineEdit(id, driver) {
+        // สร้างแถวปกติจากข้อมูลเดิม
+        const normalRow = createDriverRow(id, driver);
+        
+        // หาแถวแก้ไข
+        const editRow = document.getElementById(`edit-row-${id}`);
+        
+        // แทนที่แถวแก้ไขด้วยแถวปกติ
+        editRow.replaceWith(normalRow);
+    }
+
+    // 6. เพิ่มฟังก์ชันสำหรับสร้างแถวปกติ
+    function createDriverRow(id, driver) {
+        const row = document.createElement('tr');
+        row.id = `driver-row-${id}`;
+        
+        // Format dates for display
+        const birthDate = formatDate(driver.birthDate);
+        const joinDate = formatDate(driver.joinDate);
+        const licenseExpireDate = formatDate(driver.licenseExpireDate);
+        
+        row.innerHTML = `
+            <td>${driver.empNo}</td>
+            <td>${driver.driverName}</td>
+            <td>${driver.vendor}</td>
+            <td>${birthDate || '-'}</td>
+            <td>${joinDate || '-'}</td>
+            <td>${licenseExpireDate || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-primary edit-btn" data-id="${id}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        // เพิ่ม event listeners
+        row.querySelector('.edit-btn').addEventListener('click', () => editDriver(id));
+        row.querySelector('.delete-btn').addEventListener('click', () => deleteDriver(id));
+        
+        return row;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('th-TH');
+    }
+
+    function showAddDriverForm() {
+        formTitle.textContent = 'เพิ่มข้อมูลพนักงานใหม่';
+        editMode.value = 'add';
+        driverId.value = '';
+        addDriverForm.reset();
+        driverForm.style.display = 'block';
+        document.getElementById('empNo').focus();
+    }
+
+    function hideDriverForm() {
+        driverForm.style.display = 'none';
+        addDriverForm.reset();
+    }
+
+    function handleDriverFormSubmit(e) {
+        e.preventDefault();
+        
+        const driverData = {
+            empNo: document.getElementById('empNo').value,
+            driverName: document.getElementById('driverName').value,
+            vendor: document.getElementById('vendor').value,
+            birthDate: document.getElementById('birthDate').value,
+            joinDate: document.getElementById('joinDate').value,
+            licenseExpireDate: document.getElementById('licenseExpireDate').value,
+        };
+        
+        if (editMode.value === 'add') {
+            // Check if empNo already exists
+            driversCollection.where('empNo', '==', driverData.empNo).get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        showAlert(`รหัสพนักงาน ${driverData.empNo} มีอยู่ในระบบแล้ว`, 'danger');
+                        return;
+                    }
+                    
+                    // Add new driver
+                    driversCollection.add(driverData)
                         .then(() => {
-                            showAlert('อัพเดทข้อมูลพนักงานสำเร็จ', 'success');
+                            showAlert('เพิ่มข้อมูลพนักงานสำเร็จ', 'success');
                             hideDriverForm();
                             loadDrivers();
                         })
                         .catch((error) => {
-                            console.error("Error updating driver: ", error);
-                            showAlert('เกิดข้อผิดพลาดในการอัพเดทข้อมูล: ' + error.message, 'danger');
+                            console.error("Error adding driver: ", error);
+                            showAlert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล: ' + error.message, 'danger');
                         });
-                }
-            }
-
-            function editDriver(id) {
-                formTitle.textContent = 'แก้ไขข้อมูลพนักงาน';
-                editMode.value = 'edit';
-                driverId.value = id;
-                
-                driversCollection.doc(id).get()
-                    .then((doc) => {
-                        if (doc.exists) {
-                            const driver = doc.data();
-                            document.getElementById('empNo').value = driver.empNo;
-                            document.getElementById('driverName').value = driver.driverName;
-                            document.getElementById('vendor').value = driver.vendor;
-                            document.getElementById('birthDate').value = driver.birthDate;
-                            document.getElementById('joinDate').value = driver.joinDate;
-                            document.getElementById('licenseExpireDate').value = driver.licenseExpireDate;
-                            
-                            driverForm.style.display = 'block';
-                        } else {
-                            showAlert('ไม่พบข้อมูลพนักงาน', 'warning');
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error getting driver: ", error);
-                        showAlert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message, 'danger');
-                    });
-            }
-
-            function deleteDriver(id) {
-                if (confirm('คุณต้องการลบข้อมูลพนักงานนี้ใช่หรือไม่?')) {
-                    driversCollection.doc(id).delete()
-                        .then(() => {
-                            showAlert('ลบข้อมูลพนักงานสำเร็จ', 'success');
-                            loadDrivers();
-                        })
-                        .catch((error) => {
-                            console.error("Error deleting driver: ", error);
-                            showAlert('เกิดข้อผิดพลาดในการลบข้อมูล: ' + error.message, 'danger');
-                        });
-                }
-            }
-
-            function searchDrivers() {
-                const searchTerm = searchInput.value.toLowerCase().trim();
-                
-                if (!searchTerm) {
+                });
+        } else {
+            // Update existing driver
+            const id = driverId.value;
+            driversCollection.doc(id).update(driverData)
+                .then(() => {
+                    showAlert('อัพเดทข้อมูลพนักงานสำเร็จ', 'success');
+                    hideDriverForm();
                     loadDrivers();
-                    return;
-                }
-                
-                driversTableBody.innerHTML = '';
-                
-                driversCollection.get()
-                    .then((querySnapshot) => {
-                        let found = false;
-                        
-                        querySnapshot.forEach((doc) => {
-                            const driver = doc.data();
-                            if (
-                                driver.empNo.toLowerCase().includes(searchTerm) ||
-                                driver.driverName.toLowerCase().includes(searchTerm) ||
-                                driver.vendor.toLowerCase().includes(searchTerm)
-                            ) {
-                                addDriverToTable(doc.id, driver);
-                                found = true;
-                            }
-                        });
-                        
-                        if (!found) {
-                            showAlert(`ไม่พบข้อมูลพนักงานที่ตรงกับ "${searchTerm}"`, 'warning');
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error searching drivers: ", error);
-                        showAlert('เกิดข้อผิดพลาดในการค้นหาข้อมูล: ' + error.message, 'danger');
-                    });
-            }
+                })
+                .catch((error) => {
+                    console.error("Error updating driver: ", error);
+                    showAlert('เกิดข้อผิดพลาดในการอัพเดทข้อมูล: ' + error.message, 'danger');
+                });
+        }
+    }
 
-            function showAlert(message, type) {
-                const alert = document.createElement('div');
-                alert.className = `alert alert-${type} alert-dismissible fade show`;
-                alert.innerHTML = `
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
+    function deleteDriver(id) {
+        if (confirm('คุณต้องการลบข้อมูลพนักงานนี้ใช่หรือไม่?')) {
+            driversCollection.doc(id).delete()
+                .then(() => {
+                    showAlert('ลบข้อมูลพนักงานสำเร็จ', 'success');
+                    
+                    // อัปเดตข้อมูลในตัวแปร allDriversData
+                    allDriversData = allDriversData.filter(driver => driver.id !== id);
+                    
+                    // โหลดข้อมูลใหม่
+                    renderDriversTable(allDriversData);
+                })
+                .catch((error) => {
+                    console.error("Error deleting driver: ", error);
+                    showAlert('เกิดข้อผิดพลาดในการลบข้อมูล: ' + error.message, 'danger');
+                });
+        }
+    }
+
+    // แก้ไขฟังก์ชัน searchDrivers เพื่อรองรับการเรียงลำดับ
+    function searchDrivers() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            if (currentSortColumn) {
+                sortDrivers(currentSortColumn, sortDirection);
+            } else {
+                renderDriversTable(allDriversData);
+            }
+            return;
+        }
+        
+        // กรองข้อมูลตามคำค้นหา
+        const filteredDrivers = allDriversData.filter(driver => 
+            driver.empNo.toLowerCase().includes(searchTerm) || 
+            driver.driverName.toLowerCase().includes(searchTerm) ||
+            driver.vendor.toLowerCase().includes(searchTerm)
+        );
+        
+        if (filteredDrivers.length === 0) {
+            driversTableBody.innerHTML = '';
+            showAlert(`ไม่พบข้อมูลพนักงานที่ตรงกับ "${searchTerm}"`, 'warning');
+        } else {
+            // จัดเรียงข้อมูลที่กรองแล้ว (ถ้ามีการจัดเรียง)
+            if (currentSortColumn) {
+                const sortedFilteredDrivers = [...filteredDrivers].sort((a, b) => {
+                    let valueA, valueB;
+                    
+                    switch (currentSortColumn) {
+                        case 'empNo':
+                        case 'driverName':
+                        case 'vendor':
+                            valueA = (a[currentSortColumn] || '').toLowerCase();
+                            valueB = (b[currentSortColumn] || '').toLowerCase();
+                            
+                            if (sortDirection === 'asc') {
+                                return valueA.localeCompare(valueB);
+                            } else {
+                                return valueB.localeCompare(valueA);
+                            }
+                            
+                        case 'birthDate':
+                        case 'joinDate':
+                        case 'licenseExpireDate':
+                            valueA = a[currentSortColumn] ? new Date(a[currentSortColumn]).getTime() : 0;
+                            valueB = b[currentSortColumn] ? new Date(b[currentSortColumn]).getTime() : 0;
+                            
+                            if (sortDirection === 'asc') {
+                                return valueA - valueB;
+                            } else {
+                                return valueB - valueA;
+                            }
+                            
+                        default:
+                            return 0;
+                    }
+                });
                 
-                alertContainer.innerHTML = '';
-                alertContainer.appendChild(alert);
-                
-                // Auto dismiss after 5 seconds
-                setTimeout(() => {
-                    alert.classList.remove('show');
-                    setTimeout(() => {
-                        alertContainer.innerHTML = '';
-                    }, 150);
-                }, 5000);
+                renderDriversTable(sortedFilteredDrivers);
+            } else {
+                renderDriversTable(filteredDrivers);
             }
         }
+    }
+
+    function showAlert(message, type) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        alertContainer.innerHTML = '';
+        alertContainer.appendChild(alert);
+        
+        // Auto dismiss after 5 seconds
+        setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 150);
+        }, 5000);
+    }
+}
     </script>
 </body>
 </html>

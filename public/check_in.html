@@ -129,17 +129,6 @@
             font-size: 48px;
             margin-bottom: 10px;
         }
-        .manual-selection {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
-        .manual-selection h5 {
-            margin-bottom: 15px;
-            color: #17a2b8;
-        }
     </style>
 </head>
 <body>
@@ -175,29 +164,24 @@
                                         <p><strong>บริษัท:</strong> <span id="vendorDisplay"></span></p>
                                     </div>
                                     <div class="col-md-6">
-                                        <!-- Processing indicator -->
-                                        <div id="processingSection">
-                                            <div class="d-flex justify-content-center align-items-center h-100">
-                                                <div class="spinner-border text-info" role="status">
-                                                    <span class="visually-hidden">กำลังประมวลผล...</span>
-                                                </div>
-                                                <span class="ms-2">กำลังตรวจสอบข้อมูล...</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Default plate section (now just for display) -->
+                                        <!-- Default plate section -->
                                         <div id="defaultPlateSection" style="display: none;">
                                             <div class="plate-info mb-3">
-                                                <strong>ทะเบียนรถที่ใช้เข้างาน:</strong>
+                                                <strong>ทะเบียนรถ (ค่าเริ่มต้น):</strong>
                                                 <span id="defaultPlateID" class="badge-plate"></span>
                                             </div>
+                                            <button id="useDefaultBtn" class="btn btn-success w-100 mb-2">
+                                                <i class="fas fa-sign-in-alt me-2"></i>บันทึกเวลาเข้างาน
+                                            </button>
+                                            <button id="selectOtherBtn" class="btn btn-outline-secondary w-100">
+                                                <i class="fas fa-exchange-alt me-2"></i>เลือกทะเบียนอื่น
+                                            </button>
                                         </div>
                                         
-                                        <!-- Manual selection section (only shown when no pairings exist) -->
-                                        <div id="selectPlateSection" style="display: none;" class="manual-selection">
-                                            <h5><i class="fas fa-exclamation-circle me-2"></i>ไม่พบข้อมูลการจับคู่</h5>
-                                            <p>กรุณาเลือกทะเบียนรถสำหรับการเข้างานครั้งนี้</p>
+                                        <!-- Select plate section -->
+                                        <div id="selectPlateSection">
                                             <div class="form-group mb-3">
+                                                <label for="plateIDInput" class="form-label">ทะเบียนรถ</label>
                                                 <select class="form-select" id="plateIDInput">
                                                     <option value="">-- เลือกทะเบียนรถ --</option>
                                                 </select>
@@ -223,7 +207,7 @@
                     <a href="bus_db.html" class="btn btn-outline-success">
                         <i class="fas fa-bus me-2"></i>จัดการข้อมูลรถ
                     </a>
-                    <a href="bus_driver.html" class="btn btn-outline-secondary">
+                    <a href="BusPairDriver.html" class="btn btn-outline-secondary">
                         <i class="fas fa-link me-2"></i>จับคู่พนักงานกับรถ
                     </a>
                 </div>
@@ -260,14 +244,14 @@
         </div>
     </div>
 
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <!-- Firebase Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <!-- Firebase Config -->
-    <script src="firebase.js"></script>
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<!-- เพิ่มบรรทัดนี้: Firebase Config -->
+<script src="firebase.js"></script>
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -305,7 +289,8 @@
             const defaultPlateSection = document.getElementById('defaultPlateSection');
             const selectPlateSection = document.getElementById('selectPlateSection');
             const defaultPlateID = document.getElementById('defaultPlateID');
-            const processingSection = document.getElementById('processingSection');
+            const useDefaultBtn = document.getElementById('useDefaultBtn');
+            const selectOtherBtn = document.getElementById('selectOtherBtn');
             const checkinStatus = document.getElementById('checkinStatus');
             const checkinDriver = document.getElementById('checkinDriver');
             const checkinPlate = document.getElementById('checkinPlate');
@@ -328,6 +313,16 @@
                 recordCheckIn(plateIDInput.value);
             });
             
+            useDefaultBtn.addEventListener('click', function() {
+                recordCheckIn(defaultPlate.plateID);
+            });
+            
+            selectOtherBtn.addEventListener('click', function() {
+                defaultPlateSection.style.display = 'none';
+                selectPlateSection.style.display = 'block';
+                plateIDInput.focus();
+            });
+            
             // Auto focus on the input field
             empNoInput.focus();
             
@@ -339,12 +334,6 @@
                     showAlert('กรุณาสแกนรหัสพนักงาน', 'warning');
                     return;
                 }
-                
-                // Show driver info section with loading spinner
-                driverInfo.style.display = 'block';
-                processingSection.style.display = 'block';
-                defaultPlateSection.style.display = 'none';
-                selectPlateSection.style.display = 'none';
                 
                 driversCollection.where('empNo', '==', empNo).get()
                     .then((querySnapshot) => {
@@ -370,88 +359,58 @@
                         driverNameDisplay.textContent = driver.driverName;
                         vendorDisplay.textContent = driver.vendor;
                         
-                        // Check if there's a default pairing or recent pairings for this driver
-                        checkDriverPairings(driver.empNo, driver.vendor);
+                        // Check if there's a default pairing for this driver
+                        checkDefaultPairing(driver.empNo, driver.vendor);
                     })
                     .catch((error) => {
                         console.error("Error finding driver: ", error);
                         showAlert('เกิดข้อผิดพลาดในการค้นหาข้อมูล: ' + error.message, 'danger');
-                        processingSection.style.display = 'none';
                     });
             }
             
-            function checkDriverPairings(empNo, vendor) {
+            function checkDefaultPairing(empNo, vendor) {
                 // Reset default plate
                 defaultPlate = null;
                 
-                // First check for default pair
+                // Check for default pair
                 pairsCollection
                     .where('empNo', '==', empNo)
                     .where('isDefault', '==', true)
                     .get()
-                    .then((defaultPairSnapshot) => {
-                        if (!defaultPairSnapshot.empty) {
-                            // Found default pairing - use this and check in automatically
-                            defaultPlate = defaultPairSnapshot.docs[0].data();
+                    .then((querySnapshot) => {
+                        if (!querySnapshot.empty) {
+                            // Found default pairing
+                            defaultPlate = querySnapshot.docs[0].data();
+                            
+                            // Display default plate info
                             defaultPlateID.textContent = defaultPlate.plateID;
                             defaultPlateSection.style.display = 'block';
-                            processingSection.style.display = 'none';
+                            selectPlateSection.style.display = 'none';
                             
-                            // Automatically record check-in with default plate
-                            recordCheckIn(defaultPlate.plateID);
-                            return;
+                            // Show driver info
+                            driverInfo.style.display = 'block';
+                            
+                            // Auto-select the default bus after a short delay (for visual feedback)
+                            setTimeout(() => {
+                                recordCheckIn(defaultPlate.plateID);
+                            }, 500);
+                        } else {
+                            // No default pairing, load buses for manual selection
+                            defaultPlateSection.style.display = 'none';
+                            selectPlateSection.style.display = 'block';
+                            loadBusesForSelection(vendor);
+                            
+                            // Show driver info
+                            driverInfo.style.display = 'block';
                         }
-                        
-                        // No default pairing, check for any pairings without sorting
-                        // This is more reliable than using orderBy which requires an index
-                        pairsCollection
-                            .where('empNo', '==', empNo)
-                            .get()
-                            .then((pairsSnapshot) => {
-                                if (!pairsSnapshot.empty) {
-                                    // Found pairings - sort them client-side and use the most recent
-                                    let pairs = pairsSnapshot.docs.map(doc => doc.data());
-                                    
-                                    // If there are multiple pairs, try to sort by createdAt if it exists
-                                    if (pairs.length > 1 && pairs[0].createdAt) {
-                                        pairs.sort((a, b) => {
-                                            // Newer dates first
-                                            return new Date(b.createdAt) - new Date(a.createdAt);
-                                        });
-                                    }
-                                    
-                                    // Use the first pair (most recent if sorted)
-                                    const recentPair = pairs[0];
-                                    defaultPlateID.textContent = recentPair.plateID;
-                                    defaultPlateSection.style.display = 'block';
-                                    processingSection.style.display = 'none';
-                                    
-                                    // Automatically record check-in with pair plate
-                                    recordCheckIn(recentPair.plateID);
-                                    return;
-                                }
-                                
-                                // No pairings found, load buses for manual selection
-                                processingSection.style.display = 'none';
-                                loadBusesForSelection(vendor);
-                            })
-                            .catch((error) => {
-                                console.error("Error checking for pairs: ", error);
-                                processingSection.style.display = 'none';
-                                showAlert('เกิดข้อผิดพลาดในการตรวจสอบการจับคู่: ' + error.message, 'warning');
-                            });
                     })
                     .catch((error) => {
                         console.error("Error checking for default pair: ", error);
-                        processingSection.style.display = 'none';
-                        showAlert('เกิดข้อผิดพลาดในการตรวจสอบการจับคู่: ' + error.message, 'warning');
+                        showAlert('เกิดข้อผิดพลาดในการตรวจสอบการจับคู่: ' + error.message, 'danger');
                     });
             }
             
             function loadBusesForSelection(vendor) {
-                // Show manual selection section
-                selectPlateSection.style.display = 'block';
-                
                 // Clear existing options except the first one
                 const options = Array.from(plateIDInput.options);
                 const firstOption = options[0];
@@ -474,8 +433,33 @@
                             plateIDInput.appendChild(option);
                         });
                         
-                        // Focus on the plate ID dropdown
-                        plateIDInput.focus();
+                        // Also check if there are any non-default pairings to preselect
+                        pairsCollection
+                            .where('empNo', '==', currentDriver.empNo)
+                            .get()
+                            .then((pairSnapshot) => {
+                                if (!pairSnapshot.empty) {
+                                    // Get the most recent pairing
+                                    const pairs = pairSnapshot.docs.map(doc => doc.data());
+                                    const recentPair = pairs.sort((a, b) => 
+                                        new Date(b.createdAt) - new Date(a.createdAt)
+                                    )[0];
+                                    
+                                    // Find and select the option
+                                    for (let i = 0; i < plateIDInput.options.length; i++) {
+                                        if (plateIDInput.options[i].value === recentPair.plateID) {
+                                            plateIDInput.selectedIndex = i;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                // Focus on the plate ID dropdown
+                                plateIDInput.focus();
+                            })
+                            .catch((error) => {
+                                console.error("Error checking for recent pairs: ", error);
+                            });
                     })
                     .catch((error) => {
                         console.error("Error loading buses: ", error);

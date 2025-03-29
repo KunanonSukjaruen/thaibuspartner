@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เข้าสู่ระบบด้วยเบอร์โทรศัพท์</title>
+  <style>
+    body {
+      font-family: 'Sarabun', Arial, sans-serif;
+      background-color: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      color: #3b82f6;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .btn-secondary {
+      background-color: #ffffff;
+      color: #3b82f6;
+      border: none;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .btn-primary:hover {
+      background-color: #2563eb;
+    }
+    .message {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .success {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    .error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    .link {
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+    .link:hover {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    .phone-step {
+      display: none;
+    }
+    .phone-step.active {
+      display: block;
+    }
+    #recaptcha-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>เข้าสู่ระบบด้วยเบอร์โทรศัพท์</h1>
+
+    <div id="phone-step-1" class="phone-step active">
+      <div class="form-group">
+        <label for="phone-number">เบอร์โทรศัพท์</label>
+        <input type="tel" id="phone-number" placeholder="เช่น +66812345678" required>
+        <small style="display: block; margin-top: 5px; color: #6b7280;">* กรอกเบอร์โทรศัพท์ในรูปแบบสากล เช่น +66812345678</small>
+      </div>
+      
+      <div id="recaptcha-container"></div>
+      
+      <button id="send-otp-btn" class="btn btn-primary">ส่งรหัส OTP</button>
+    </div>
+
+    <div id="phone-step-2" class="phone-step">
+      <div class="form-group">
+        <label for="otp-code">รหัส OTP</label>
+        <input type="text" id="otp-code" placeholder="กรอกรหัส 6 หลัก" required>
+      </div>
+      
+      <button id="verify-otp-btn" class="btn btn-primary">ยืนยันรหัส OTP</button>
+    </div>
+    
+    <div id="message" class="message" style="display: none;"></div>
+    
+    <p>เข้าสู่ระบบด้วยวิธีอื่น? <a href="login.html" class="link">อีเมลและรหัสผ่าน</a></p>
+    <p><a href="index.html" class="link">กลับไปหน้าหลัก</a></p>
+  </div>
+
+  <!-- นำเข้า Firebase SDK จาก CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+  <!-- ใช้ type="module" เพื่อให้สามารถใช้ import/export ได้ -->
+  <script type="module">
+    // นำเข้าการกำหนดค่า Firebase จากไฟล์ firebase.js
+    import './firebase.js';
+    import { setupRecaptcha, sendOTP, confirmOTP, checkAuthState } from './auth.js';
+    
+    const phoneStep1 = document.getElementById('phone-step-1');
+    const phoneStep2 = document.getElementById('phone-step-2');
+    const phoneNumberInput = document.getElementById('phone-number');
+    const otpCodeInput = document.getElementById('otp-code');
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const verifyOtpBtn = document.getElementById('verify-otp-btn');
+    const recaptchaContainer = document.getElementById('recaptcha-container');
+    const messageDiv = document.getElementById('message');
+    
+    let recaptchaVerifier;
+    
+    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วหรือไม่
+    checkAuthState((user) => {
+      if (user) {
+        // ผู้ใช้เข้าสู่ระบบแล้ว ให้เปลี่ยนเส้นทางไปยังหน้าแดชบอร์ด
+        window.location.href = 'dashboard.html';
+      }
+    });
+    
+    // ฟังก์ชันสำหรับแสดงข้อความ
+    function showMessage(text, isSuccess = true) {
+      messageDiv.textContent = text;
+      messageDiv.className = isSuccess ? 'message success' : 'message error';
+      messageDiv.style.display = 'block';
+    }
+    
+    // เริ่มต้น reCAPTCHA เมื่อโหลดหน้า
+    window.onload = function() {
+      try {
+        recaptchaVerifier = setupRecaptcha('recaptcha-container');
+      } catch (error) {
+        showMessage('เกิดข้อผิดพลาดในการโหลด reCAPTCHA: ' + error.message, false);
+      }
+    };
+    
+    // ส่งรหัส OTP
+    sendOtpBtn.addEventListener('click', () => {
+      const phoneNumber = phoneNumberInput.value.trim();
+      
+      if (!phoneNumber) {
+        showMessage('กรุณากรอกเบอร์โทรศัพท์', false);
+        return;
+      }
+      
+      // ส่งรหัส OTP ไปยังเบอร์โทรศัพท์
+      sendOTP(phoneNumber, recaptchaVerifier)
+        .then(() => {
+          showMessage('ส่งรหัส OTP ไปยังเบอร์โทรศัพท์ของคุณแล้ว');
+          
+          // เปลี่ยนไปยังขั้นตอนการยืนยันรหัส OTP
+          phoneStep1.classList.remove('active');
+          phoneStep2.classList.add('active');
+        })
+        .catch((error) => {
+          showMessage(error.message, false);
+          
+          // รีเซ็ต reCAPTCHA หลังจากเกิดข้อผิดพลาด
+          recaptchaVerifier.clear();
+          recaptchaContainer.innerHTML = '';
+          recaptchaVerifier = setupRecaptcha('recaptcha-container');
+        });
+    });
+    
+    // ยืนยันรหัส OTP
+    verifyOtpBtn.addEventListener('click', () => {
+      const otpCode = otpCodeInput.value.trim();
+      
+      if (!otpCode) {
+        showMessage('กรุณากรอกรหัส OTP', false);
+        return;
+      }
+      
+      // ยืนยันรหัส OTP
+      confirmOTP(otpCode)
+        .then((user) => {
+          showMessage('เข้าสู่ระบบสำเร็จ กำลังนำคุณไปยังหน้าแดชบอร์ด...');
+          
+          // เปลี่ยนเส้นทางไปยังหน้าแดชบอร์ดหลังจากเข้าสู่ระบบสำเร็จ
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1500);
+        })
+        .catch((error) => {
+          showMessage(error.message, false);
+        });
+    });
+  </script>
+</body>
+</html>

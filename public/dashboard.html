@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แดชบอร์ด</title>
+  <style>
+    body {
+      font-family: 'Sarabun', Arial, sans-serif;
+      background-color: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .header {
+      background-color: #3b82f6;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .user-actions {
+      display: flex;
+      align-items: center;
+    }
+    .user-email {
+      margin-right: 15px;
+      font-weight: 500;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .dashboard-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      color: #3b82f6;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #374151;
+      margin-top: 0;
+      font-size: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+    }
+    .btn-logout {
+      background-color: transparent;
+      color: white;
+      border: 2px solid white;
+    }
+    .btn-logout:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .btn-primary {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #2563eb;
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background-color: #6b7280;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background-color: #4b5563;
+      transform: translateY(-2px);
+    }
+    .message {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .success {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    .error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .info-item {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .info-label {
+      width: 150px;
+      font-weight: 600;
+      color: #374151;
+    }
+    .info-value {
+      color: #4b5563;
+      flex: 1;
+    }
+    .tab-container {
+      margin-top: 20px;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 20px;
+    }
+    .tab-button {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+    }
+    .tab-button.active {
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+    .vendor-badge {
+      display: inline-block;
+      background-color: #e5e7eb;
+      color: #374151;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 14px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .permission-badge {
+      display: inline-block;
+      background-color: #3b82f6;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 14px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+    .role-admin {
+      background-color: #dc2626;
+    }
+    .role-super {
+      background-color: #7c3aed;
+    }
+    .role-user {
+      background-color: #2563eb;
+    }
+    .role-readonly {
+      background-color: #6b7280;
+    }
+    .role-godMode {
+      background-color: #fbbf24;
+      color: #1f2937;
+    }
+    .section-divider {
+      height: 1px;
+      background-color: #e5e7eb;
+      margin: 30px 0;
+    }
+    .badge-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Thai Bus Partner</div>
+    <div class="user-actions">
+      <span class="user-email" id="header-user-email">ผู้ใช้: loading...</span>
+      <button id="logout-btn" class="btn btn-logout">ออกจากระบบ</button>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="dashboard-card">
+      <h1>ยินดีต้อนรับสู่แดชบอร์ด</h1>
+      <p>คุณได้เข้าสู่ระบบเรียบร้อยแล้ว นี่คือพื้นที่ส่วนตัวของคุณซึ่งต้องใช้การยืนยันตัวตนเพื่อเข้าถึง</p>
+      
+      <div id="message" class="message" style="display: none;"></div>
+    </div>
+    
+    <div class="dashboard-card">
+      <h2>ข้อมูลผู้ใช้</h2>
+      
+      <div class="tab-container">
+        <div class="tabs">
+          <button class="tab-button active" onclick="openTab('profile')">โปรไฟล์</button>
+          <button class="tab-button" onclick="openTab('permissions')">สิทธิ์การใช้งาน</button>
+          <button class="tab-button" onclick="openTab('settings')">ตั้งค่า</button>
+        </div>
+        
+        <!-- แท็บโปรไฟล์ -->
+        <div id="profile" class="tab-content active">
+          <div class="user-info">
+            <div class="info-item">
+              <div class="info-label">ชื่อที่แสดง:</div>
+              <div class="info-value" id="user-displayName">loading...</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">อีเมล:</div>
+              <div class="info-value" id="user-email">loading...</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">เบอร์โทรศัพท์:</div>
+              <div class="info-value" id="user-phone">loading...</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">บทบาท:</div>
+              <div class="info-value" id="user-role">
+                <span class="role-badge" id="role-badge">loading...</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">UID:</div>
+              <div class="info-value" id="user-uid">loading...</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">สถานะการยืนยัน:</div>
+              <div class="info-value" id="verification-status">loading...</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- แท็บสิทธิ์การใช้งาน -->
+        <div id="permissions" class="tab-content">
+          <div class="info-item">
+            <div class="info-label">Vendor ที่สังกัด:</div>
+            <div class="info-value">
+              <div class="badge-container" id="vendor-container">
+                <span class="vendor-badge">Loading...</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="section-divider"></div>
+          
+          <div class="info-item">
+            <div class="info-label">สิทธิ์การเข้าถึง:</div>
+            <div class="info-value">
+              <div class="badge-container" id="permission-container">
+                <span class="permission-badge">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- แท็บตั้งค่า -->
+        <div id="settings" class="tab-content">
+          <form id="profile-form">
+            <div class="form-group">
+              <label for="display-name">ชื่อที่แสดง</label>
+              <input type="text" id="display-name" placeholder="กรอกชื่อที่ต้องการแสดง">
+            </div>

@@ -1,8 +1,4 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
   "hosting": {
     "public": "public",
     "ignore": [
@@ -11,6 +7,30 @@
       "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/check_in",
+        "destination": "/check_in.html"
+      },
+      {
+        "source": "/bus_db",
+        "destination": "/bus_db.html"
+      },
+      {
+        "source": "/BusPairDriver",
+        "destination": "/BusPairDriver.html"
+      },
+      {
+        "source": "/driver_db",
+        "destination": "/driver_db.html"
+      },
+      {
+        "source": "upload_db",
+        "destination": "/upload_db.html"
+      },
+      {
+        "source": "dashboard",
+        "destination": "/upload_db.html"
+      },
       {
         "source": "**",
         "destination": "/index.html"

@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบอัพโหลดข้อมูล Excel</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1000px;
+            margin-top: 30px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #6f42c1;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px;
+        }
+        .btn-primary {
+            background-color: #6f42c1;
+            border-color: #6f42c1;
+        }
+        .btn-primary:hover {
+            background-color: #5a32a3;
+            border-color: #5a32a3;
+        }
+        .table th {
+            background-color: #f2f2f2;
+        }
+        .alert {
+            margin-top: 20px;
+        }
+        .form-control:focus {
+            border-color: #6f42c1;
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+        }
+        .step-container {
+            counter-reset: step;
+        }
+        .step {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .step:before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #6f42c1;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .step-content {
+            margin-left: 20px;
+        }
+        .preview-table {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .template-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-file-excel me-2"></i>ระบบอัพโหลดข้อมูล Excel</h3>
+                <div>
+                    <a href="driver_db.html" class="btn btn-light ms-2"><i class="fas fa-id-card me-2"></i>จัดการข้อมูลพนักงาน</a>
+                    <a href="bus_db.html" class="btn btn-light ms-2"><i class="fas fa-bus me-2"></i>จัดการข้อมูลรถ</a>
+                    <a href="check_in.html" class="btn btn-light ms-2"><i class="fas fa-clock me-2"></i>บันทึกเวลาเข้างาน</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Alert for messages -->
+                <div id="alertContainer"></div>
+
+                <div class="step-container" id="uploadProcess">
+                    <!-- Step 1: Select data type and file -->
+                    <div class="step" id="step1">
+                        <div class="step-content">
+                            <h5 class="mb-3">เลือกประเภทข้อมูลและไฟล์ Excel</h5>
+                            <div class="mb-3">
+                                <label class="form-label">ประเภทข้อมูล</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="dataType" id="driverData" value="driver" checked>
+                                    <label class="form-check-label" for="driverData">
+                                        ข้อมูลพนักงานขับรถ
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="dataType" id="busData" value="bus">
+                                    <label class="form-check-label" for="busData">
+                                        ข้อมูลรถ
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="excelFile" class="form-label">เลือกไฟล์ Excel (.xlsx, .xls)</label>
+                                <input class="form-control" type="file" id="excelFile" accept=".xlsx, .xls">
+                                <div class="form-text">ไฟล์ Excel ต้องมีหัวคอลัมน์ตามที่กำหนด</div>
+                            </div>
+                            
+                            <div id="templateInfo">
+                                <div class="template-card" id="driverTemplate">
+                                    <h6><i class="fas fa-info-circle me-2"></i>รูปแบบข้อมูลพนักงานขับรถ</h6>
+                                    <p>ไฟล์ Excel ต้องมีคอลัมน์ดังนี้:</p>
+                                    <ul>
+                                        <li><strong>empNo</strong> - รหัสพนักงาน</li>
+                                        <li><strong>driverName</strong> - ชื่อ-นามสกุล</li>
+                                        <li><strong>vendor</strong> - บริษัท</li>
+                                        <li><strong>birthDate</strong> - วันเกิด (yyyy-mm-dd หรือ dd/mm/yyyy)</li>
+                                        <li><strong>joinDate</strong> - วันที่เริ่มงาน (yyyy-mm-dd หรือ dd/mm/yyyy)</li>
+                                        <li><strong>licenseExpireDate</strong> - วันหมดอายุใบขับขี่ (yyyy-mm-dd หรือ dd/mm/yyyy)</li>
+                                    </ul>
+                                    <button class="btn btn-sm btn-outline-primary" id="downloadDriverTemplate">
+                                        <i class="fas fa-download me-2"></i>ดาวน์โหลดเทมเพลต
+                                    </button>
+                                </div>
+                                
+                                <div class="template-card" id="busTemplate" style="display: none;">
+                                    <h6><i class="fas fa-info-circle me-2"></i>รูปแบบข้อมูลรถ</h6>
+                                    <p>ไฟล์ Excel ต้องมีคอลัมน์ดังนี้:</p>
+                                    <ul>
+                                        <li><strong>plateID</strong> - ทะเบียนรถ</li>
+                                        <li><strong>vendor</strong> - บริษัท</li>
+                                        <li><strong>taxExpireDate</strong> - วันหมดอายุภาษี (yyyy-mm-dd หรือ dd/mm/yyyy)</li>
+                                        <li><strong>inspectExpireDate</strong> - วันหมดอายุตรวจสภาพรถ (yyyy-mm-dd หรือ dd/mm/yyyy)</li>
+                                        <li><strong>insuranceExpireDate</strong> - วันหมดอายุประกัน (yyyy-mm-dd หรือ dd/mm/yyyy)</li>
+                                    </ul>
+                                    <button class="btn btn-sm btn-outline-primary" id="downloadBusTemplate">
+                                        <i class="fas fa-download me-2"></i>ดาวน์โหลดเทมเพลต
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-3">
+                                <button class="btn btn-primary" id="nextStep1Btn" disabled>
+                                    ตรวจสอบข้อมูล <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Preview and validate data -->
+                    <div class="step" id="step2" style="display: none;">
+                        <div class="step-content">
+                            <h5 class="mb-3">ตรวจสอบข้อมูลก่อนอัพโหลด</h5>
+                            
+                            <div id="validationSummary" class="mb-3">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>กำลังตรวจสอบข้อมูล...
+                                </div>
+                            </div>
+                            
+                            <div class="preview-table mb-3">
+                                <table class="table table-bordered table-striped table-hover">
+                                    <thead id="previewTableHead">
+                                        <!-- Headers will be added dynamically -->
+                                    </thead>
+                                    <tbody id="previewTableBody">
+                                        <!-- Data will be added dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-3">
+                                <button class="btn btn-secondary" id="backStep2Btn">
+                                    <i class="fas fa-arrow-left me-2"></i> ย้อนกลับ
+                                </button>
+                                <button class="btn btn-primary" id="nextStep2Btn" disabled>
+                                    อัพโหลดข้อมูล <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Upload progress and result -->
+                    <div class="step" id="step3" style="display: none;">
+                        <div class="step-content">
+                            <h5 class="mb-3">ผลการอัพโหลดข้อมูล</h5>
+                            
+                            <div id="uploadProgress" class="mb-3">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" id="progressBar">0%</div>
+                                </div>
+                            </div>
+                            
+                            <div id="uploadResult" class="mb-3">
+                                <!-- Results will be shown here -->
+                            </div>
+                            
+                            <div id="uploadSummary" class="mb-3" style="display: none;">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>สรุปผลการอัพโหลด</h6>
+                                        <ul>
+                                            <li>จำนวนข้อมูลทั้งหมด: <span id="totalRecords">0</span> รายการ</li>
+                                            <li>อัพโหลดสำเร็จ: <span id="successRecords">0</span> รายการ</li>
+                                            <li>ข้อผิดพลาด: <span id="errorRecords">0</span> รายการ</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-3">
+                                <button class="btn btn-secondary" id="startOverBtn">
+                                    <i class="fas fa-redo me-2"></i> เริ่มใหม่
+                                </button>
+                                <a href="#" class="btn btn-primary" id="viewDataBtn">
+                                    <i class="fas fa-table me-2"></i> ดูข้อมูลในระบบ
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<!-- Firebase Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<!-- SheetJS (XLSX) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase Config -->
+<script src="firebase.js"></script>
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+<script>
+    // Initialize Firebase (use your config from firebase.js)
+    document.addEventListener('DOMContentLoaded', function() {
+        // This will ensure the Firebase configuration is loaded from firebase.js
+        setTimeout(initApp, 100);
+    });
+
+    function initApp() {
+        // Firebase references
+        const db = firebase.firestore();
+        const driversCollection = db.collection('drivers');
+        const busesCollection = db.collection('buses');
+        
+        // DOM elements
+        const dataTypeRadios = document.querySelectorAll('input[name="dataType"]');
+        const driverTemplate = document.getElementById('driverTemplate');
+        const busTemplate = document.getElementById('busTemplate');
+        const excelFile = document.getElementById('excelFile');
+        const nextStep1Btn = document.getElementById('nextStep1Btn');
+        const backStep2Btn = document.getElementById('backStep2Btn');
+        const nextStep2Btn = document.getElementById('nextStep2Btn');
+        const startOverBtn = document.getElementById('startOverBtn');
+        const viewDataBtn = document.getElementById('viewDataBtn');
+        const downloadDriverTemplate = document.getElementById('downloadDriverTemplate');
+        const downloadBusTemplate = document.getElementById('downloadBusTemplate');
+        const previewTableHead = document.getElementById('previewTableHead');
+        const previewTableBody = document.getElementById('previewTableBody');
+        const validationSummary = document.getElementById('validationSummary');
+        const uploadResult = document.getElementById('uploadResult');
+        const uploadSummary = document.getElementById('uploadSummary');
+        const progressBar = document.getElementById('progressBar');
+        const totalRecords = document.getElementById('totalRecords');
+        const successRecords = document.getElementById('successRecords');
+        const errorRecords = document.getElementById('errorRecords');
+        const alertContainer = document.getElementById('alertContainer');
+        
+        // Step elements
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        
+        // Variables to store parsed data
+        let parsedData = [];
+        let validData = [];
+        let invalidData = [];
+        let uploadedCount = 0;
+        let errorCount = 0;
+        
+        // Define required fields for each data type
+        const requiredFields = {
+            driver: ['empNo', 'driverName', 'vendor', 'birthDate', 'joinDate', 'licenseExpireDate'],
+            bus: ['plateID', 'vendor', 'taxExpireDate', 'inspectExpireDate', 'insuranceExpireDate']
+        };
+        
+        // Event listeners
+        dataTypeRadios.forEach(radio => {
+            radio.addEventListener('change', toggleDataTypeTemplate);
+        });
+        
+        excelFile.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const fileName = this.files[0].name;
+                const fileExt = fileName.split('.').pop().toLowerCase();
+                
+                if (fileExt === 'xlsx' || fileExt === 'xls') {
+                    nextStep1Btn.disabled = false;
+                } else {
+                    showAlert('กรุณาอัพโหลดไฟล์ Excel (.xlsx, .xls) เท่านั้น', 'danger');
+                    this.value = '';
+                    nextStep1Btn.disabled = true;
+                }
+            } else {
+                nextStep1Btn.disabled = true;
+            }
+        });
+        
+        nextStep1Btn.addEventListener('click', function() {
+            if (excelFile.files.length === 0) {
+                showAlert('กรุณาเลือกไฟล์ Excel', 'warning');
+                return;
+            }
+            
+            const file = excelFile.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = e.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    
+                    // Get first sheet
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert to JSON
+                    parsedData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+                    
+                    if (parsedData.length === 0) {
+                        showAlert('ไฟล์ Excel ไม่มีข้อมูลหรือรูปแบบไม่ถูกต้อง', 'warning');
+                        return;
+                    }
+                    
+                    // Show step 2
+                    step1.style.display = 'none';
+                    step2.style.display = 'block';
+                    
+                    // Validate and preview data
+                    validateAndPreviewData();
+                    
+                } catch (error) {
+                    console.error('Error parsing Excel file:', error);
+                    showAlert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel: ' + error.message, 'danger');
+                }
+            };
+            
+            reader.onerror = function(ex) {
+                console.error('Error reading file:', ex);
+                showAlert('เกิดข้อผิดพลาดในการอ่านไฟล์', 'danger');
+            };
+            
+            reader.readAsBinaryString(file);
+        });
+        
+        backStep2Btn.addEventListener('click', function() {
+            step2.style.display = 'none';
+            step1.style.display = 'block';
+            previewTableHead.innerHTML = '';
+            previewTableBody.innerHTML = '';
+            validationSummary.innerHTML = '';
+            parsedData = [];
+            validData = [];
+            invalidData = [];
+        });
+        
+        nextStep2Btn.addEventListener('click', function() {
+            if (validData.length === 0) {
+                showAlert('ไม่มีข้อมูลที่ถูกต้องสำหรับอัพโหลด', 'warning');
+                return;
+            }
+            
+            step2.style.display = 'none';
+            step3.style.display = 'block';
+            
+            // Start uploading data
+            uploadData();
+        });
+        
+        startOverBtn.addEventListener('click', function() {
+            // Reset everything and go back to step 1
+            step3.style.display = 'none';
+            step1.style.display = 'block';
+            excelFile.value = '';
+            nextStep1Btn.disabled = true;
+            previewTableHead.innerHTML = '';
+            previewTableBody.innerHTML = '';
+            validationSummary.innerHTML = '';
+            uploadResult.innerHTML = '';
+            uploadSummary.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            parsedData = [];
+            validData = [];
+            invalidData = [];
+            uploadedCount = 0;
+            errorCount = 0;
+        });
+        
+        viewDataBtn.addEventListener('click', function(e) {
+            const dataType = getSelectedDataType();
+            if (dataType === 'driver') {
+                e.target.href = 'driver_db.html';
+            } else {
+                e.target.href = 'bus_db.html';
+            }
+        });
+        
+        downloadDriverTemplate.addEventListener('click', function() {
+            generateAndDownloadTemplate('driver');
+        });
+        
+        downloadBusTemplate.addEventListener('click', function() {
+            generateAndDownloadTemplate('bus');
+        });
+        
+        // Functions
+        function toggleDataTypeTemplate() {
+            const dataType = getSelectedDataType();
+            
+            if (dataType === 'driver') {
+                driverTemplate.style.display = 'block';
+                busTemplate.style.display = 'none';
+            } else {
+                driverTemplate.style.display = 'none';
+                busTemplate.style.display = 'block';
+            }
+        }
+        
+        function getSelectedDataType() {
+            return document.querySelector('input[name="dataType"]:checked').value;
+        }
+        
+        function validateAndPreviewData() {
+            const dataType = getSelectedDataType();
+            const required = requiredFields[dataType];
+            
+            validData = [];
+            invalidData = [];
+            
+            // Check if all required fields are in the headers
+            const firstRow = parsedData[0];
+            const headers = Object.keys(firstRow);
+            
+            const missingHeaders = required.filter(field => !headers.includes(field));
+            
+            if (missingHeaders.length > 0) {
+                validationSummary.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>ข้อผิดพลาด:</strong> ไฟล์ Excel ไม่มีคอลัมน์ที่จำเป็น: ${missingHeaders.join(', ')}
+                    </div>
+                `;
+                previewTableHead.innerHTML = '';
+                previewTableBody.innerHTML = '';
+                nextStep2Btn.disabled = true;
+                return;
+            }
+            
+            // Create table headers
+            let headerRow = '<tr>';
+            required.forEach(field => {
+                headerRow += `<th>${getFieldLabel(field, dataType)}</th>`;
+            });
+            headerRow += '<th>สถานะ</th>';
+            headerRow += '</tr>';
+            previewTableHead.innerHTML = headerRow;
+            
+            // Validate each row
+            parsedData.forEach((row, index) => {
+                const rowData = {};
+                let isValid = true;
+                let errors = [];
+                
+                // Check for required fields and format dates
+                required.forEach(field => {
+                    let value = row[field] || '';
+                    
+                    // Trim whitespace
+                    if (typeof value === 'string') {
+                        value = value.trim();
+                    }
+                    
+                    // Check if field is empty
+                    if (!value) {
+                        isValid = false;
+                        errors.push(`${getFieldLabel(field, dataType)} ไม่สามารถเป็นค่าว่างได้`);
+                    }
+                    
+                    // Format dates
+                    if (field.toLowerCase().includes('date') && value) {
+                        try {
+                            // Try to parse date
+                            let dateValue;
+                            
+                            // Check if date is in dd/mm/yyyy format
+                            if (value.includes('/')) {
+                                const parts = value.split('/');
+                                if (parts.length === 3) {
+                                    // Assume dd/mm/yyyy format
+                                    const day = parseInt(parts[0], 10);
+                                    const month = parseInt(parts[1], 10) - 1; // JS months are 0-indexed
+                                    const year = parseInt(parts[2], 10);
+                                    dateValue = new Date(year, month, day);
+                                } else {
+                                    throw new Error('รูปแบบวันที่ไม่ถูกต้อง');
+                                }
+                            } else {
+                                // Assume ISO format (yyyy-mm-dd)
+                                dateValue = new Date(value);
+                            }
+                            
+                            if (isNaN(dateValue.getTime())) {
+                                throw new Error('วันที่ไม่ถูกต้อง');
+                            }
+                            
+                            // Format as yyyy-mm-dd for Firebase
+                            const year = dateValue.getFullYear();
+                            const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateValue.getDate()).padStart(2, '0');
+                            value = `${year}-${month}-${day}`;
+                            
+                        } catch (error) {
+                            isValid = false;
+                            errors.push(`${getFieldLabel(field, dataType)}: ${error.message}`);
+                        }
+                    }
+                    
+                    // Add to row data
+                    rowData[field] = value;
+                });
+                
+                // Check for duplicate employee numbers or plate IDs
+                if (isValid) {
+                    const keyField = dataType === 'driver' ? 'empNo' : 'plateID';
+                    const duplicateInValid = validData.some(item => item[keyField] === rowData[keyField]);
+                    
+                    if (duplicateInValid) {
+                        isValid = false;
+                        const fieldLabel = dataType === 'driver' ? 'รหัสพนักงาน' : 'ทะเบียนรถ';
+                        errors.push(`${fieldLabel} ${rowData[keyField]} ซ้ำกับข้อมูลอื่นในไฟล์`);
+                    }
+                }
+                
+                // Add row to valid or invalid data
+                if (isValid) {
+                    validData.push(rowData);
+                } else {
+                    invalidData.push({ row: rowData, errors: errors });
+                }
+                
+                // Add row to preview table
+                let rowHtml = '<tr>';
+                required.forEach(field => {
+                    rowHtml += `<td>${row[field] || ''}</td>`;
+                });
+                
+                if (isValid) {
+                    rowHtml += '<td><span class="badge bg-success">ถูกต้อง</span></td>';
+                } else {
+                    rowHtml += `
+                        <td>
+                            <span class="badge bg-danger">ไม่ถูกต้อง</span>
+                            <button class="btn btn-sm btn-link p-0 ms-1 view-errors" data-index="${index}">
+                                ดูข้อผิดพลาด
+                            </button>
+                        </td>
+                    `;
+                }
+                
+                rowHtml += '</tr>';
+                previewTableBody.innerHTML += rowHtml;
+            });
+            
+            // Add event listeners to "view errors" buttons
+            document.querySelectorAll('.view-errors').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'), 10);
+                    const errors = invalidData.find((item, i) => i === index)?.errors || [];
+                    
+                    if (errors.length > 0) {
+                        alert('ข้อผิดพลาด:\n- ' + errors.join('\n- '));
+                    }
+                });
+            });
+            
+            // Show validation summary
+            let summaryHtml = '';
+            if (invalidData.length > 0) {
+                summaryHtml = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>พบข้อมูลที่ไม่ถูกต้อง:</strong> ${invalidData.length} รายการจากทั้งหมด ${parsedData.length} รายการ
+                        <br>
+                        <small>หมายเหตุ: ระบบจะอัพโหลดเฉพาะข้อมูลที่ถูกต้องเท่านั้น</small>
+                    </div>
+                `;
+            } else {
+                summaryHtml = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>ข้อมูลถูกต้องทั้งหมด:</strong> ${validData.length} รายการ
+                    </div>
+                `;
+            }
+            
+            validationSummary.innerHTML = summaryHtml;
+            
+            // Enable/disable next button
+            nextStep2Btn.disabled = validData.length === 0;
+        }
+        
+        function uploadData() {
+            const dataType = getSelectedDataType();
+            const collection = dataType === 'driver' ? driversCollection : busesCollection;
+            
+            // Reset counters
+            uploadedCount = 0;
+            errorCount = 0;
+            totalRecords.textContent = validData.length;
+            successRecords.textContent = '0';
+            errorRecords.textContent = '0';
+            
+            // Clear previous results
+            uploadResult.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-upload me-2"></i>
+                    <span>กำลังอัพโหลดข้อมูล ${validData.length} รายการ...</span>
+                </div>
+            `;
+            
+            // Process each valid data item
+            uploadDataItem(collection, dataType, 0);
+        }
+        
+        function uploadDataItem(collection, dataType, index) {
+            if (index >= validData.length) {
+                // Done uploading all items
+                finishUpload();
+                return;
+            }
+            
+            const item = validData[index];
+            const keyField = dataType === 'driver' ? 'empNo' : 'plateID';
+            
+            // Check for existing items with the same key
+            collection.where(keyField, '==', item[keyField]).get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        // Item already exists
+                        errorCount++;
+                        errorRecords.textContent = errorCount;
+                        
+                        // Log error
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'alert alert-warning mt-2';
+                        errorDiv.innerHTML = `
+                            <small>
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ${dataType === 'driver' ? 'รหัสพนักงาน' : 'ทะเบียนรถ'} ${item[keyField]} มีอยู่ในระบบแล้ว
+                            </small>
+                        `;
+                        uploadResult.appendChild(errorDiv);
+                        
+                        // Update progress
+                        updateProgress(index + 1);
+                        
+                        // Process next item
+                        uploadDataItem(collection, dataType, index + 1);
+                    } else {
+                        // Add new item
+                        collection.add(item)
+                            .then(() => {
+                                uploadedCount++;
+                                successRecords.textContent = uploadedCount;
+                                
+                                // Update progress
+                                updateProgress(index + 1);
+                                
+                                // Process next item
+                                uploadDataItem(collection, dataType, index + 1);
+                            })
+                            .catch((error) => {
+                                console.error(`Error adding ${dataType}:`, error);
+                                errorCount++;
+                                errorRecords.textContent = errorCount;
+                                
+                                // Log error
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'alert alert-danger mt-2';
+                                errorDiv.innerHTML = `
+                                    <small>
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        ข้อผิดพลาดในการเพิ่ม ${dataType === 'driver' ? 'พนักงาน' : 'รถ'} ${item[keyField]}: ${error.message}
+                                    </small>
+                                `;
+                                uploadResult.appendChild(errorDiv);
+                                
+                                // Update progress
+                                updateProgress(index + 1);
+                                
+                                // Process next item
+                                uploadDataItem(collection, dataType, index + 1);
+                            });
+                    }
+                })
+                .catch((error) => {
+                    console.error(`Error checking for existing ${dataType}:`, error);
+                    errorCount++;
+                    errorRecords.textContent = errorCount;
+                    
+                    // Log error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger mt-2';
+                    errorDiv.innerHTML = `
+                        <small>
+                            <i class="fas fa-times-circle me-2"></i>
+                            ข้อผิดพลาดในการตรวจสอบ ${dataType === 'driver' ? 'พนักงาน' : 'รถ'} ${item[keyField]}: ${error.message}
+                        </small>
+                    `;
+                    uploadResult.appendChild(errorDiv);
+                    
+                    // Update progress
+                    updateProgress(index + 1);
+                    
+                    // Process next item
+                    uploadDataItem(collection, dataType, index + 1);
+                });
+        }
+        
+        function updateProgress(current) {
+            const percent = Math.round((current / validData.length) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressBar.textContent = `${percent}%`;
+        }
+        
+        function finishUpload() {
+            // Show final results
+            let resultHtml = '';
+            
+            if (uploadedCount > 0) {
+                if (errorCount === 0) {
+                    resultHtml = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>อัพโหลดสำเร็จ!</strong> อัพโหลดข้อมูลจำนวน ${uploadedCount} รายการเรียบร้อยแล้ว
+                        </div>
+                    `;
+                } else {
+                    resultHtml = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>อัพโหลดเสร็จสิ้นแล้ว</strong> สำเร็จ ${uploadedCount} รายการ, ล้มเหลว ${errorCount} รายการ
+                        </div>
+                    `;
+                }
+            } else {
+                resultHtml = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>อัพโหลดล้มเหลว!</strong> ไม่สามารถอัพโหลดข้อมูลได้
+                    </div>
+                `;
+            }
+            
+            uploadResult.innerHTML = resultHtml + uploadResult.innerHTML;
+            uploadSummary.style.display = 'block';
+        }
+        
+        function generateAndDownloadTemplate(type) {
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            
+            let data = [];
+            let headers = [];
+            
+            if (type === 'driver') {
+                // Example driver data
+                data = [
+                    {
+                        'empNo': 'DRV001',
+                        'driverName': 'สมชาย ใจดี',
+                        'vendor': 'บริษัท ขนส่งดี จำกัด',
+                        'birthDate': '1980-01-15',
+                        'joinDate': '2020-03-01',
+                        'licenseExpireDate': '2025-12-31'
+                    }
+                ];
+                headers = ['empNo', 'driverName', 'vendor', 'birthDate', 'joinDate', 'licenseExpireDate'];
+            } else {
+                // Example bus data
+                data = [
+                    {
+                        'plateID': '1กข 1234',
+                        'vendor': 'บริษัท ขนส่งดี จำกัด',
+                        'taxExpireDate': '2024-05-31',
+                        'inspectExpireDate': '2024-06-30',
+                        'insuranceExpireDate': '2024-12-31'
+                    }
+                ];
+                headers = ['plateID', 'vendor', 'taxExpireDate', 'inspectExpireDate', 'insuranceExpireDate'];
+            }
+            
+            // Create worksheet with headers
+            const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            
+            // Generate file name
+            const fileName = type === 'driver' ? 'driver_template.xlsx' : 'bus_template.xlsx';
+            
+            // Write to file and trigger download
+            XLSX.writeFile(wb, fileName);
+        }
+        
+        function getFieldLabel(field, dataType) {
+            const labels = {
+                driver: {
+                    empNo: 'รหัสพนักงาน',
+                    driverName: 'ชื่อ-นามสกุล',
+                    vendor: 'บริษัท',
+                    birthDate: 'วันเกิด',
+                    joinDate: 'วันที่เริ่มงาน',
+                    licenseExpireDate: 'วันหมดอายุใบขับขี่'
+                },
+                bus: {
+                    plateID: 'ทะเบียนรถ',
+                    vendor: 'บริษัท',
+                    taxExpireDate: 'วันหมดอายุภาษี',
+                    inspectExpireDate: 'วันหมดอายุตรวจสภาพรถ',
+                    insuranceExpireDate: 'วันหมดอายุประกัน'
+                }
+            };
+            
+            return labels[dataType][field] || field;
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => {
+                    alertContainer.innerHTML = '';
+                }, 150);
+            }, 5000);
+        }
+    }
+</script>
+</body>
+</html>

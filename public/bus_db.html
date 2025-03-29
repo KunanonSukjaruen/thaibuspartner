@@ -8,7 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
         body {
             font-family: 'Sarabun', sans-serif;
@@ -56,7 +55,7 @@
                 <h3><i class="fas fa-bus me-2"></i>ระบบจัดการข้อมูลรถ</h3>
                 <div>
                     <button id="addBusBtn" class="btn btn-light"><i class="fas fa-plus me-2"></i>เพิ่มรถใหม่</button>
-                    <a href="driver_db.html" class="btn btn-light ms-2"><i class="fas fa-id-card me-2"></i>จัดการข้อมูลพนักงาน</a>
+                    <a href="BusPairDriver.html" class="btn btn-light ms-2"><i class="fas fa-id-card me-2"></i>จัดการข้อมูลพนักงาน</a>
                     <a href="check_in.html" class="btn btn-light ms-2"><i class="fas fa-clock me-2"></i>บันทึกเวลาเข้างาน</a>
                 </div>
             </div>
@@ -145,15 +144,19 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <!-- Firebase Firestore -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<!-- Firebase Analytics (ถ้าต้องการใช้) -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
-<!-- Firebase Config - ต้องเรียกหลังจากโหลด SDK แล้ว -->
+<!-- เพิ่มบรรทัดนี้: Firebase Config -->
 <script src="firebase.js"></script>
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         // Initialize Firebase (use your config from firebase.js)
         document.addEventListener('DOMContentLoaded', function() {
             // This will ensure the Firebase configuration is loaded from firebase.js
-            setTimeout(initApp, 100);
+            setTimeout(() => {
+                initApp();
+
+            }, 100);
         });
 
         function initApp() {
@@ -186,90 +189,431 @@
                     searchBuses();
                 }
             });
-
+        
             // Functions
+            // เพิ่มตัวแปรสำหรับการจัดเรียง
+            let currentSortColumn = '';
+            let sortDirection = 'asc';
+            let allBusesData = []; // เก็บข้อมูลรถทั้งหมดสำหรับการจัดเรียง
+
+            // แก้ไขฟังก์ชัน loadBuses เพื่อเก็บข้อมูลทั้งหมด
             function loadBuses() {
                 busesCollection.get()
                     .then((querySnapshot) => {
                         busesTableBody.innerHTML = '';
+                        allBusesData = []; // รีเซ็ตข้อมูล
+                        
                         if (querySnapshot.empty) {
                             showAlert('ไม่พบข้อมูลรถในระบบ', 'warning');
                         } else {
                             querySnapshot.forEach((doc) => {
                                 const bus = doc.data();
-                                addBusToTable(doc.id, bus);
+                                // เก็บข้อมูลพร้อม ID ไว้ในอาร์เรย์
+                                allBusesData.push({
+                                    id: doc.id,
+                                    ...bus
+                                });
                             });
+                            
+                            // แสดงข้อมูลทั้งหมดตามการจัดเรียงปัจจุบัน (ถ้ามี)
+                            if (currentSortColumn) {
+                                sortBuses(currentSortColumn, sortDirection);
+                            } else {
+                                // ถ้ายังไม่มีการจัดเรียง ให้แสดงข้อมูลทั้งหมดตามปกติ
+                                renderBusesTable(allBusesData);
+                            }
                         }
                     })
                     .catch((error) => {
                         console.error("Error loading buses: ", error);
                         showAlert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'danger');
                     });
+                    setupSortableHeaders();
             }
 
-            function addBusToTable(id, bus) {
-                const row = document.createElement('tr');
+// เพิ่มฟังก์ชันใหม่สำหรับการแสดงผลตาราง
+function renderBusesTable(buses) {
+    busesTableBody.innerHTML = '';
+    
+    if (buses.length === 0) {
+        showAlert('ไม่พบข้อมูลรถในระบบ', 'warning');
+        return;
+    }
+    
+    buses.forEach(bus => {
+        addBusToTable(bus.id, bus);
+    });
+}
+
+// เพิ่มฟังก์ชันสำหรับการจัดเรียงข้อมูล
+function sortBuses(column, direction) {
+    currentSortColumn = column;
+    sortDirection = direction;
+    
+    const sortedBuses = [...allBusesData].sort((a, b) => {
+        let valueA, valueB;
+        
+        // ดึงค่าตามคอลัมน์ที่ต้องการเรียง
+        switch (column) {
+            case 'plateID':
+            case 'vendor':
+                valueA = (a[column] || '').toLowerCase();
+                valueB = (b[column] || '').toLowerCase();
                 
-                // Format dates for display
-                const taxExpireDate = formatDate(bus.taxExpireDate);
-                const inspectExpireDate = formatDate(bus.inspectExpireDate);
-                const insuranceExpireDate = formatDate(bus.insuranceExpireDate);
-                
-                // Check for expiring documents (within 30 days)
-                const today = new Date();
-                
-                const taxExpire = new Date(bus.taxExpireDate);
-                const taxDiffDays = Math.ceil((taxExpire - today) / (1000 * 60 * 60 * 24));
-                
-                const inspectExpire = new Date(bus.inspectExpireDate);
-                const inspectDiffDays = Math.ceil((inspectExpire - today) / (1000 * 60 * 60 * 24));
-                
-                const insuranceExpire = new Date(bus.insuranceExpireDate);
-                const insuranceDiffDays = Math.ceil((insuranceExpire - today) / (1000 * 60 * 60 * 24));
-                
-                let taxClass = '';
-                if (taxDiffDays < 0) {
-                    taxClass = 'text-white bg-danger';
-                } else if (taxDiffDays < 30) {
-                    taxClass = 'text-dark bg-warning';
+                // เรียงตัวอักษร
+                if (direction === 'asc') {
+                    return valueA.localeCompare(valueB);
+                } else {
+                    return valueB.localeCompare(valueA);
                 }
                 
-                let inspectClass = '';
-                if (inspectDiffDays < 0) {
-                    inspectClass = 'text-white bg-danger';
-                } else if (inspectDiffDays < 30) {
-                    inspectClass = 'text-dark bg-warning';
+            case 'taxExpireDate':
+            case 'inspectExpireDate':
+            case 'insuranceExpireDate':
+                // แปลงวันที่เป็น timestamp สำหรับการเปรียบเทียบ
+                valueA = a[column] ? new Date(a[column]).getTime() : 0;
+                valueB = b[column] ? new Date(b[column]).getTime() : 0;
+                
+                // เรียงตัวเลข (timestamp)
+                if (direction === 'asc') {
+                    return valueA - valueB;
+                } else {
+                    return valueB - valueA;
                 }
                 
-                let insuranceClass = '';
-                if (insuranceDiffDays < 0) {
-                    insuranceClass = 'text-white bg-danger';
-                } else if (insuranceDiffDays < 30) {
-                    insuranceClass = 'text-dark bg-warning';
-                }
-                
-                row.innerHTML = `
-                    <td>${bus.plateID}</td>
-                    <td>${bus.vendor}</td>
-                    <td class="${taxClass}">${taxExpireDate}</td>
-                    <td class="${inspectClass}">${inspectExpireDate}</td>
-                    <td class="${insuranceClass}">${insuranceExpireDate}</td>
-                    <td>
-                        <button class="btn btn-sm btn-success edit-btn" data-id="${id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                
-                busesTableBody.appendChild(row);
-                
-                // Add event listeners to the buttons
-                row.querySelector('.edit-btn').addEventListener('click', () => editBus(id));
-                row.querySelector('.delete-btn').addEventListener('click', () => deleteBus(id));
+            default:
+                return 0;
+        }
+    });
+    
+    // อัปเดตการแสดงผลตาราง
+    renderBusesTable(sortedBuses);
+    
+    // อัปเดตไอคอนการเรียงลำดับ
+    updateSortIcons(column, direction);
+}
+
+// เพิ่มฟังก์ชันสำหรับอัปเดตไอคอนการเรียงลำดับ
+function updateSortIcons(column, direction) {
+    // ลบไอคอนการเรียงลำดับทั้งหมด
+    document.querySelectorAll('th .sort-icon').forEach(icon => {
+        icon.innerHTML = '<i class="fas fa-sort text-secondary"></i>';
+    });
+    
+    // แสดงไอคอนตามทิศทางการเรียงลำดับ
+    const currentHeader = document.querySelector(`th[data-sort="${column}"] .sort-icon`);
+    if (currentHeader) {
+        if (direction === 'asc') {
+            currentHeader.innerHTML = '<i class="fas fa-sort-up"></i>';
+        } else {
+            currentHeader.innerHTML = '<i class="fas fa-sort-down"></i>';
+        }
+    }
+}
+
+
+
+// อัปเดต HTML ของส่วนหัวตาราง
+// ต้องเรียกใช้ฟังก์ชันนี้หลังจากที่ DOMContentLoaded
+function setupSortableHeaders() {
+    const tableHeaders = document.querySelector('.table thead tr');
+    
+    // อัปเดต HTML ของส่วนหัวตาราง
+    tableHeaders.innerHTML = `
+        <th data-sort="plateID">ทะเบียนรถ <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+        <th data-sort="vendor">บริษัท <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+        <th data-sort="taxExpireDate">วันหมดอายุภาษี <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+        <th data-sort="inspectExpireDate">วันหมดอายุตรวจสภาพรถ <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+        <th data-sort="insuranceExpireDate">วันหมดอายุประกัน <span class="sort-icon"><i class="fas fa-sort text-secondary"></i></span></th>
+        <th>จัดการ</th>
+    `;
+    
+    // เพิ่มอีเวนต์คลิกสำหรับการจัดเรียง
+    document.querySelectorAll('th[data-sort]').forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', () => {
+            const column = header.getAttribute('data-sort');
+            
+            // สลับทิศทางการเรียงถ้าคลิกคอลัมน์เดิม
+            if (column === currentSortColumn) {
+                const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                sortBuses(column, newDirection);
+            } else {
+                // เรียงจากน้อยไปมากเมื่อคลิกคอลัมน์ใหม่
+                sortBuses(column, 'asc');
             }
+        });
+    });
+}
+
+            // 1. แก้ไขฟังก์ชัน addBusToTable เพื่อเพิ่ม id ให้กับแถว
+function addBusToTable(id, bus) {
+    const row = document.createElement('tr');
+    row.id = `bus-row-${id}`; // เพิ่ม id ให้กับแถว
+    
+    // Format dates for display
+    const taxExpireDate = formatDate(bus.taxExpireDate);
+    const inspectExpireDate = formatDate(bus.inspectExpireDate);
+    const insuranceExpireDate = formatDate(bus.insuranceExpireDate);
+    
+    // Check for expiring documents (within 30 days)
+    const today = new Date();
+    
+    const taxExpire = new Date(bus.taxExpireDate);
+    const taxDiffDays = Math.ceil((taxExpire - today) / (1000 * 60 * 60 * 24));
+    
+    const inspectExpire = new Date(bus.inspectExpireDate);
+    const inspectDiffDays = Math.ceil((inspectExpire - today) / (1000 * 60 * 60 * 24));
+    
+    const insuranceExpire = new Date(bus.insuranceExpireDate);
+    const insuranceDiffDays = Math.ceil((insuranceExpire - today) / (1000 * 60 * 60 * 24));
+    
+    let taxClass = '';
+    if (taxDiffDays < 0) {
+        taxClass = 'text-white bg-danger';
+    } else if (taxDiffDays < 30) {
+        taxClass = 'text-dark bg-warning';
+    }
+    
+    let inspectClass = '';
+    if (inspectDiffDays < 0) {
+        inspectClass = 'text-white bg-danger';
+    } else if (inspectDiffDays < 30) {
+        inspectClass = 'text-dark bg-warning';
+    }
+    
+    let insuranceClass = '';
+    if (insuranceDiffDays < 0) {
+        insuranceClass = 'text-white bg-danger';
+    } else if (insuranceDiffDays < 30) {
+        insuranceClass = 'text-dark bg-warning';
+    }
+    
+    row.innerHTML = `
+        <td>${bus.plateID}</td>
+        <td>${bus.vendor}</td>
+        <td class="${taxClass}">${taxExpireDate}</td>
+        <td class="${inspectClass}">${inspectExpireDate}</td>
+        <td class="${insuranceClass}">${insuranceExpireDate}</td>
+        <td>
+            <button class="btn btn-sm btn-success edit-btn" data-id="${id}">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    busesTableBody.appendChild(row);
+    
+    // Add event listeners to the buttons
+    row.querySelector('.edit-btn').addEventListener('click', () => editBus(id));
+    row.querySelector('.delete-btn').addEventListener('click', () => deleteBus(id));
+}
+
+// 2. แก้ไขฟังก์ชัน editBus เพื่อใช้การแก้ไขแบบ inline
+function editBus(id) {
+    busesCollection.doc(id).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const bus = doc.data();
+                showInlineEdit(id, bus);
+            } else {
+                showAlert('ไม่พบข้อมูลรถ', 'warning');
+            }
+        })
+        .catch((error) => {
+            console.error("Error getting bus: ", error);
+            showAlert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message, 'danger');
+        });
+}
+
+// 3. เพิ่มฟังก์ชันใหม่สำหรับแสดงฟอร์มแก้ไขแบบ inline
+function showInlineEdit(id, bus) {
+    // หาแถวปัจจุบัน
+    const currentRow = document.getElementById(`bus-row-${id}`);
+    
+    // แปลงวันที่เป็นรูปแบบ yyyy-MM-dd สำหรับ input type="date"
+    const taxExpireDate = bus.taxExpireDate ? bus.taxExpireDate : '';
+    const inspectExpireDate = bus.inspectExpireDate ? bus.inspectExpireDate : '';
+    const insuranceExpireDate = bus.insuranceExpireDate ? bus.insuranceExpireDate : '';
+    
+    // สร้างแถวใหม่สำหรับฟอร์มแก้ไข
+    const editRow = document.createElement('tr');
+    editRow.id = `edit-row-${id}`;
+    editRow.className = 'table-warning';
+    
+    // สร้างฟอร์มแก้ไข
+    editRow.innerHTML = `
+        <td>
+            <input type="text" class="form-control form-control-sm" id="edit-plateID-${id}" value="${bus.plateID}" required>
+        </td>
+        <td>
+            <input type="text" class="form-control form-control-sm" id="edit-vendor-${id}" value="${bus.vendor}" required>
+        </td>
+        <td>
+            <input type="date" class="form-control form-control-sm" id="edit-taxExpireDate-${id}" value="${taxExpireDate}" required>
+        </td>
+        <td>
+            <input type="date" class="form-control form-control-sm" id="edit-inspectExpireDate-${id}" value="${inspectExpireDate}" required>
+        </td>
+        <td>
+            <input type="date" class="form-control form-control-sm" id="edit-insuranceExpireDate-${id}" value="${insuranceExpireDate}" required>
+        </td>
+        <td>
+            <button class="btn btn-sm btn-success save-btn" data-id="${id}">
+                <i class="fas fa-save"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary cancel-btn" data-id="${id}">
+                <i class="fas fa-times"></i>
+            </button>
+        </td>
+    `;
+    
+    // แทรกแถวแก้ไขแทนที่แถวปัจจุบัน
+    currentRow.replaceWith(editRow);
+    
+    // เพิ่มอีเวนต์สำหรับปุ่มบันทึกและยกเลิก
+    editRow.querySelector('.save-btn').addEventListener('click', () => saveInlineEdit(id, bus));
+    editRow.querySelector('.cancel-btn').addEventListener('click', () => cancelInlineEdit(id, bus));
+}
+
+// 4. เพิ่มฟังก์ชันสำหรับบันทึกการแก้ไข
+function saveInlineEdit(id, originalBus) {
+    // ดึงค่าจากฟอร์ม
+    const plateID = document.getElementById(`edit-plateID-${id}`).value;
+    const vendor = document.getElementById(`edit-vendor-${id}`).value;
+    const taxExpireDate = document.getElementById(`edit-taxExpireDate-${id}`).value;
+    const inspectExpireDate = document.getElementById(`edit-inspectExpireDate-${id}`).value;
+    const insuranceExpireDate = document.getElementById(`edit-insuranceExpireDate-${id}`).value;
+    
+    // ตรวจสอบว่าทะเบียนรถมีการเปลี่ยนแปลงหรือไม่
+    if (plateID !== originalBus.plateID) {
+        // ตรวจสอบว่าทะเบียนรถใหม่มีอยู่ในระบบแล้วหรือไม่
+        busesCollection.where('plateID', '==', plateID).get()
+            .then((querySnapshot) => {
+                if (!querySnapshot.empty) {
+                    showAlert(`ทะเบียนรถ ${plateID} มีอยู่ในระบบแล้ว`, 'danger');
+                    return;
+                }
+                
+                // อัปเดตข้อมูล
+                updateBusData();
+            })
+            .catch((error) => {
+                console.error("Error checking plateID: ", error);
+                showAlert('เกิดข้อผิดพลาดในการตรวจสอบทะเบียนรถ: ' + error.message, 'danger');
+            });
+    } else {
+        // อัปเดตข้อมูลโดยไม่ต้องตรวจสอบทะเบียนรถ
+        updateBusData();
+    }
+    
+    // ฟังก์ชันสำหรับอัปเดตข้อมูล
+    function updateBusData() {
+        const busData = {
+            plateID: plateID,
+            vendor: vendor,
+            taxExpireDate: taxExpireDate,
+            inspectExpireDate: inspectExpireDate,
+            insuranceExpireDate: insuranceExpireDate
+        };
+        
+        busesCollection.doc(id).update(busData)
+            .then(() => {
+                showAlert('อัพเดทข้อมูลรถสำเร็จ', 'success');
+                
+                // อัปเดตการแสดงผลในตาราง
+                const updatedBus = { ...busData };
+                const editRow = document.getElementById(`edit-row-${id}`);
+                const normalRow = createBusRow(id, updatedBus);
+                editRow.replaceWith(normalRow);
+            })
+            .catch((error) => {
+                console.error("Error updating bus: ", error);
+                showAlert('เกิดข้อผิดพลาดในการอัพเดทข้อมูล: ' + error.message, 'danger');
+            });
+    }
+}
+
+// 5. เพิ่มฟังก์ชันสำหรับยกเลิกการแก้ไข
+function cancelInlineEdit(id, bus) {
+    // สร้างแถวปกติจากข้อมูลเดิม
+    const normalRow = createBusRow(id, bus);
+    
+    // หาแถวแก้ไข
+    const editRow = document.getElementById(`edit-row-${id}`);
+    
+    // แทนที่แถวแก้ไขด้วยแถวปกติ
+    editRow.replaceWith(normalRow);
+}
+
+// 6. เพิ่มฟังก์ชันสำหรับสร้างแถวปกติ
+function createBusRow(id, bus) {
+    const row = document.createElement('tr');
+    row.id = `bus-row-${id}`;
+    
+    // Format dates for display
+    const taxExpireDate = formatDate(bus.taxExpireDate);
+    const inspectExpireDate = formatDate(bus.inspectExpireDate);
+    const insuranceExpireDate = formatDate(bus.insuranceExpireDate);
+    
+    // Check for expiring documents (within 30 days)
+    const today = new Date();
+    
+    const taxExpire = new Date(bus.taxExpireDate);
+    const taxDiffDays = Math.ceil((taxExpire - today) / (1000 * 60 * 60 * 24));
+    
+    const inspectExpire = new Date(bus.inspectExpireDate);
+    const inspectDiffDays = Math.ceil((inspectExpire - today) / (1000 * 60 * 60 * 24));
+    
+    const insuranceExpire = new Date(bus.insuranceExpireDate);
+    const insuranceDiffDays = Math.ceil((insuranceExpire - today) / (1000 * 60 * 60 * 24));
+    
+    let taxClass = '';
+    if (taxDiffDays < 0) {
+        taxClass = 'text-white bg-danger';
+    } else if (taxDiffDays < 30) {
+        taxClass = 'text-dark bg-warning';
+    }
+    
+    let inspectClass = '';
+    if (inspectDiffDays < 0) {
+        inspectClass = 'text-white bg-danger';
+    } else if (inspectDiffDays < 30) {
+        inspectClass = 'text-dark bg-warning';
+    }
+    
+    let insuranceClass = '';
+    if (insuranceDiffDays < 0) {
+        insuranceClass = 'text-white bg-danger';
+    } else if (insuranceDiffDays < 30) {
+        insuranceClass = 'text-dark bg-warning';
+    }
+    
+    row.innerHTML = `
+        <td>${bus.plateID}</td>
+        <td>${bus.vendor}</td>
+        <td class="${taxClass}">${taxExpireDate}</td>
+        <td class="${inspectClass}">${inspectExpireDate}</td>
+        <td class="${insuranceClass}">${insuranceExpireDate}</td>
+        <td>
+            <button class="btn btn-sm btn-success edit-btn" data-id="${id}">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger delete-btn" data-id="${id}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    // เพิ่ม event listeners
+    row.querySelector('.edit-btn').addEventListener('click', () => editBus(id));
+    row.querySelector('.delete-btn').addEventListener('click', () => deleteBus(id));
+    
+    return row;
+}
 
             function formatDate(dateString) {
                 if (!dateString) return '-';
@@ -339,32 +683,6 @@
                 }
             }
 
-            function editBus(id) {
-                formTitle.textContent = 'แก้ไขข้อมูลรถ';
-                editMode.value = 'edit';
-                busId.value = id;
-                
-                busesCollection.doc(id).get()
-                    .then((doc) => {
-                        if (doc.exists) {
-                            const bus = doc.data();
-                            document.getElementById('plateID').value = bus.plateID;
-                            document.getElementById('vendor').value = bus.vendor;
-                            document.getElementById('taxExpireDate').value = bus.taxExpireDate;
-                            document.getElementById('inspectExpireDate').value = bus.inspectExpireDate;
-                            document.getElementById('insuranceExpireDate').value = bus.insuranceExpireDate;
-                            
-                            busForm.style.display = 'block';
-                        } else {
-                            showAlert('ไม่พบข้อมูลรถ', 'warning');
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error getting bus: ", error);
-                        showAlert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + error.message, 'danger');
-                    });
-            }
-
             function deleteBus(id) {
                 if (confirm('คุณต้องการลบข้อมูลรถนี้ใช่หรือไม่?')) {
                     busesCollection.doc(id).delete()
@@ -379,40 +697,69 @@
                 }
             }
 
-            function searchBuses() {
-                const searchTerm = searchInput.value.toLowerCase().trim();
+ // แก้ไขฟังก์ชัน searchBuses เพื่อคงการจัดเรียง
+function searchBuses() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        if (currentSortColumn) {
+            sortBuses(currentSortColumn, sortDirection);
+        } else {
+            renderBusesTable(allBusesData);
+        }
+        return;
+    }
+    
+    // กรองข้อมูลตามคำค้นหา
+    const filteredBuses = allBusesData.filter(bus => 
+        bus.plateID.toLowerCase().includes(searchTerm) || 
+        bus.vendor.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filteredBuses.length === 0) {
+        busesTableBody.innerHTML = '';
+        showAlert(`ไม่พบข้อมูลรถที่ตรงกับ "${searchTerm}"`, 'warning');
+    } else {
+        // จัดเรียงข้อมูลที่กรองแล้ว (ถ้ามีการจัดเรียง)
+        if (currentSortColumn) {
+            const sortedFilteredBuses = [...filteredBuses].sort((a, b) => {
+                let valueA, valueB;
                 
-                if (!searchTerm) {
-                    loadBuses();
-                    return;
-                }
-                
-                busesTableBody.innerHTML = '';
-                
-                busesCollection.get()
-                    .then((querySnapshot) => {
-                        let found = false;
+                switch (currentSortColumn) {
+                    case 'plateID':
+                    case 'vendor':
+                        valueA = (a[currentSortColumn] || '').toLowerCase();
+                        valueB = (b[currentSortColumn] || '').toLowerCase();
                         
-                        querySnapshot.forEach((doc) => {
-                            const bus = doc.data();
-                            if (
-                                bus.plateID.toLowerCase().includes(searchTerm) ||
-                                bus.vendor.toLowerCase().includes(searchTerm)
-                            ) {
-                                addBusToTable(doc.id, bus);
-                                found = true;
-                            }
-                        });
-                        
-                        if (!found) {
-                            showAlert(`ไม่พบข้อมูลรถที่ตรงกับ "${searchTerm}"`, 'warning');
+                        if (sortDirection === 'asc') {
+                            return valueA.localeCompare(valueB);
+                        } else {
+                            return valueB.localeCompare(valueA);
                         }
-                    })
-                    .catch((error) => {
-                        console.error("Error searching buses: ", error);
-                        showAlert('เกิดข้อผิดพลาดในการค้นหาข้อมูล: ' + error.message, 'danger');
-                    });
-            }
+                        
+                    case 'taxExpireDate':
+                    case 'inspectExpireDate':
+                    case 'insuranceExpireDate':
+                        valueA = a[currentSortColumn] ? new Date(a[currentSortColumn]).getTime() : 0;
+                        valueB = b[currentSortColumn] ? new Date(b[currentSortColumn]).getTime() : 0;
+                        
+                        if (sortDirection === 'asc') {
+                            return valueA - valueB;
+                        } else {
+                            return valueB - valueA;
+                        }
+                        
+                    default:
+                        return 0;
+                }
+            });
+            
+            renderBusesTable(sortedFilteredBuses);
+        } else {
+            renderBusesTable(filteredBuses);
+        }
+    }
+}
 
             function showAlert(message, type) {
                 const alert = document.createElement('div');

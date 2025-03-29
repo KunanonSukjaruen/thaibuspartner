@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ลงทะเบียน</title>
+  <style>
+    body {
+      font-family: 'Sarabun', Arial, sans-serif;
+      background-color: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      color: #3b82f6;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .btn-secondary {
+      background-color: #ffffff;
+      color: #3b82f6;
+      border: none;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .btn-primary:hover {
+      background-color: #2563eb;
+    }
+    .message {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .success {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    .error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    .link {
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+    .link:hover {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ลงทะเบียน</h1>
+    
+    <form id="signup-form">
+      <div class="form-group">
+        <label for="displayName">ชื่อ-นามสกุล</label>
+        <input type="text" id="displayName" placeholder="กรอกชื่อ-นามสกุลของคุณ" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="email">อีเมล</label>
+        <input type="email" id="email" placeholder="กรอกอีเมลของคุณ" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">รหัสผ่าน</label>
+        <input type="password" id="password" placeholder="กรอกรหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="confirmPassword">ยืนยันรหัสผ่าน</label>
+        <input type="password" id="confirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+      </div>
+      
+      <button type="submit" class="btn btn-primary">ลงทะเบียน</button>
+    </form>
+    
+    <div id="message" class="message" style="display: none;"></div>
+    
+    <p>มีบัญชีผู้ใช้แล้ว? <a href="login.html" class="link">เข้าสู่ระบบ</a></p>
+    <p><a href="index.html" class="link">กลับไปหน้าหลัก</a></p>
+  </div>
+
+  <!-- นำเข้า Firebase SDK จาก CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <script type="module">
+    // นำเข้าการกำหนดค่า Firebase และฟังก์ชันการตรวจสอบตัวตน
+    import { db } from './firebase.js';
+    import { signUp, checkAuthState } from './auth.js';
+    
+    const signupForm = document.getElementById('signup-form');
+    const displayNameInput = document.getElementById('displayName');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const messageDiv = document.getElementById('message');
+    
+    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วหรือไม่
+    checkAuthState((user) => {
+      if (user) {
+        // ผู้ใช้เข้าสู่ระบบแล้ว ให้เปลี่ยนเส้นทางไปยังหน้าแดชบอร์ด
+        window.location.href = 'dashboard.html';
+      }
+    });
+    
+    // ฟังก์ชันสำหรับแสดงข้อความ
+    function showMessage(text, isSuccess = true) {
+      messageDiv.textContent = text;
+      messageDiv.className = isSuccess ? 'message success' : 'message error';
+      messageDiv.style.display = 'block';
+    }
+    
+    // จัดการการส่งแบบฟอร์มลงทะเบียน
+    signupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const displayName = displayNameInput.value;
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+      
+      // ตรวจสอบว่ารหัสผ่านและยืนยันรหัสผ่านตรงกัน
+      if (password !== confirmPassword) {
+        showMessage('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน', false);
+        return;
+      }
+      
+      // ตรวจสอบความยาวของรหัสผ่าน
+      if (password.length < 6) {
+        showMessage('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร', false);
+        return;
+      }
+      
+      // ลงทะเบียนผู้ใช้ใหม่
+      signUp(email, password, displayName)
+        .then((user) => {
+          // บันทึกข้อมูลผู้ใช้เพิ่มเติมใน Firestore
+          return db.collection('users').doc(user.uid).set({
+            displayName: displayName,
+            email: email,
+            createdAt: new Date().toISOString(),
+            role: 'user'
+          });
+        })
+        .then(() => {
+          showMessage('ลงทะเบียนสำเร็จ! กำลังนำคุณไปยังหน้าแดชบอร์ด...');
+          
+          // ล้างฟอร์ม
+          signupForm.reset();
+          
+          // เปลี่ยนเส้นทางไปยังหน้าแดชบอร์ดหลังจากลงทะเบียนสำเร็จ
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1500);
+        })
+        .catch((error) => {
+          showMessage(error.message, false);
+        });
+    });
+  </script>
+</body>
+</html>
